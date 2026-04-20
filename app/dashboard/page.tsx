@@ -1,0 +1,683 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import api from '@/lib/api';
+import Link from 'next/link';
+import { 
+  Package, 
+  TrendingUp, 
+  TrendingDown, 
+  AlertTriangle, 
+  LogOut, 
+  Plus, 
+  Edit, 
+  Trash2,
+  X,
+  Briefcase,
+  Menu
+} from 'lucide-react';
+
+interface Producto {
+  _id: string;
+  nombre: string;
+  cantidad: number;
+  precioCompra: number;
+  precioVenta: number;
+  categoria: string;
+  stockMinimo: number;
+  createdAt: string;
+}
+
+interface Movimiento {
+  _id: string;
+  tipo: 'Entrada' | 'Salida';
+  producto: { _id: string; nombre: string };
+  cantidad: number;
+  nota: string;
+  createdAt: string;
+}
+
+export default function DashboardPage() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
+  );
+}
+
+function DashboardContent() {
+  const { usuario, logout } = useAuth();
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const [mostrarModalMovimiento, setMostrarModalMovimiento] = useState(false);
+  const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
+  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
+
+  const [formData, setFormData] = useState({
+    nombre: '',
+    cantidad: 0,
+    precioCompra: 0,
+    precioVenta: 0,
+    categoria: 'Otros',
+    stockMinimo: 5,
+  });
+
+  const [movimientoData, setMovimientoData] = useState({
+    tipo: 'Entrada' as 'Entrada' | 'Salida',
+    productoId: '',
+    cantidad: 1,
+    nota: '',
+  });
+
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
+  const cargarDatos = async () => {
+    try {
+      const [resProductos, resMovimientos] = await Promise.all([
+        api.get('/productos'),
+        api.get('/movimientos'),
+      ]);
+      setProductos(resProductos.data);
+      setMovimientos(resMovimientos.data);
+    } catch (error) {
+      console.error('Error al cargar datos:', error);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const abrirModalNuevo = () => {
+    setProductoSeleccionado(null);
+    setFormData({
+      nombre: '',
+      cantidad: 0,
+      precioCompra: 0,
+      precioVenta: 0,
+      categoria: 'Otros',
+      stockMinimo: 5,
+    });
+    setMostrarModal(true);
+  };
+
+  const abrirModalEditar = (producto: Producto) => {
+    setProductoSeleccionado(producto);
+    setFormData({
+      nombre: producto.nombre,
+      cantidad: producto.cantidad,
+      precioCompra: producto.precioCompra,
+      precioVenta: producto.precioVenta,
+      categoria: producto.categoria,
+      stockMinimo: producto.stockMinimo,
+    });
+    setMostrarModal(true);
+  };
+
+  const guardarProducto = async () => {
+    try {
+      if (productoSeleccionado) {
+        await api.put(`/productos/${productoSeleccionado._id}`, formData);
+      } else {
+        await api.post('/productos', formData);
+      }
+      setMostrarModal(false);
+      cargarDatos();
+    } catch (error) {
+      console.error('Error al guardar producto:', error);
+    }
+  };
+
+  const eliminarProducto = async (id: string) => {
+    if (confirm('¿Estás seguro de eliminar este producto?')) {
+      try {
+        await api.delete(`/productos/${id}`);
+        cargarDatos();
+      } catch (error) {
+        console.error('Error al eliminar producto:', error);
+      }
+    }
+  };
+
+  const abrirModalMovimiento = (producto: Producto) => {
+    setMovimientoData({
+      tipo: 'Entrada',
+      productoId: producto._id,
+      cantidad: 1,
+      nota: '',
+    });
+    setMostrarModalMovimiento(true);
+  };
+
+  const guardarMovimiento = async () => {
+    try {
+      await api.post('/movimientos', {
+        tipo: movimientoData.tipo,
+        producto: movimientoData.productoId,
+        cantidad: movimientoData.cantidad,
+        nota: movimientoData.nota,
+      });
+      setMostrarModalMovimiento(false);
+      cargarDatos();
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Error al crear movimiento');
+    }
+  };
+
+  const productosBajoStock = productos.filter(p => p.cantidad <= p.stockMinimo);
+  const valorTotal = productos.reduce((acc, p) => acc + (p.cantidad * p.precioVenta), 0);
+
+  if (cargando) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">ImpresoGT</h1>
+              <p className="text-xs sm:text-sm text-gray-600">Bienvenido, {usuario?.nombre}</p>
+            </div>
+            
+            {/* Botones Desktop */}
+            <div className="hidden md:flex items-center gap-4">
+              <Link 
+                href="/trabajos"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                <Briefcase size={18} />
+                Ver Trabajos
+              </Link>
+              <button
+                onClick={logout}
+                className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+              >
+                <LogOut size={18} />
+                Salir
+              </button>
+            </div>
+            
+            {/* Menú Móvil */}
+            <button
+              onClick={() => setMenuMovilAbierto(!menuMovilAbierto)}
+              className="md:hidden p-2 text-gray-600 hover:text-gray-900"
+            >
+              <Menu size={24} />
+            </button>
+          </div>
+          
+          {/* Menú desplegable móvil */}
+          {menuMovilAbierto && (
+            <div className="md:hidden mt-4 space-y-2 border-t pt-4">
+              <Link 
+                href="/trabajos"
+                onClick={() => setMenuMovilAbierto(false)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 w-full"
+              >
+                <Briefcase size={18} />
+                Ver Trabajos
+              </Link>
+              <button
+                onClick={() => { logout(); setMenuMovilAbierto(false); }}
+                className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-md w-full"
+              >
+                <LogOut size={18} />
+                Salir
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        {/* Estadísticas */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Productos</p>
+                <p className="text-3xl font-bold text-gray-900">{productos.length}</p>
+              </div>
+              <Package className="text-blue-600" size={40} />
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Valor Total Inventario</p>
+                <p className="text-3xl font-bold text-gray-900">Q{valorTotal.toFixed(2)}</p>
+              </div>
+              <TrendingUp className="text-green-600" size={40} />
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Bajo Stock</p>
+                <p className="text-3xl font-bold text-red-600">{productosBajoStock.length}</p>
+              </div>
+              <AlertTriangle className="text-red-600" size={40} />
+            </div>
+          </div>
+        </div>
+
+        {/* Alertas de bajo stock */}
+        {productosBajoStock.length > 0 && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
+            <h3 className="font-semibold text-red-800 mb-2">⚠️ Productos con bajo stock:</h3>
+            <ul className="list-disc list-inside text-red-700">
+              {productosBajoStock.map(p => (
+                <li key={p._id}>{p.nombre} - Solo {p.cantidad} unidades</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Productos */}
+        <div className="bg-white rounded-lg shadow mb-8">
+          <div className="p-4 sm:p-6 border-b flex justify-between items-center">
+            <h2 className="text-lg sm:text-xl font-semibold">Productos</h2>
+            <button
+              onClick={abrirModalNuevo}
+              className="flex items-center gap-1 sm:gap-2 bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm sm:text-base"
+            >
+              <Plus size={18} />
+              <span className="hidden sm:inline">Nuevo Producto</span>
+              <span className="sm:hidden">Nuevo</span>
+            </button>
+          </div>
+
+          {/* Vista Desktop - Tabla */}
+          <div className="hidden lg:block overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">P. Compra</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">P. Venta</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ganancia</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Margen</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {productos.map(producto => (
+                  <tr key={producto._id} className={producto.cantidad <= producto.stockMinimo ? 'bg-red-50' : ''}>
+                    <td className="px-6 py-4 whitespace-nowrap font-medium">{producto.nombre}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{producto.categoria}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`font-semibold ${producto.cantidad <= producto.stockMinimo ? 'text-red-600' : 'text-gray-900'}`}>
+                        {producto.cantidad}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">Q{producto.precioCompra.toFixed(2)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">Q{producto.precioVenta.toFixed(2)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-green-600">
+                      Q{(producto.precioVenta - producto.precioCompra).toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`font-semibold ${((producto.precioVenta - producto.precioCompra) / producto.precioCompra * 100) > 50 ? 'text-green-600' : 'text-yellow-600'}`}>
+                        {producto.precioCompra > 0 ? ((producto.precioVenta - producto.precioCompra) / producto.precioCompra * 100).toFixed(1) : '0'}%
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => abrirModalMovimiento(producto)}
+                          className="text-blue-600 hover:text-blue-800"
+                          title="Registrar movimiento"
+                        >
+                          <TrendingUp size={18} />
+                        </button>
+                        <button
+                          onClick={() => abrirModalEditar(producto)}
+                          className="text-yellow-600 hover:text-yellow-800"
+                          title="Editar"
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button
+                          onClick={() => eliminarProducto(producto._id)}
+                          className="text-red-600 hover:text-red-800"
+                          title="Eliminar"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Vista M\u00f3vil - Cards */}
+          <div className="lg:hidden divide-y">
+            {productos.map(producto => (
+              <div 
+                key={producto._id} 
+                className={`p-4 ${producto.cantidad <= producto.stockMinimo ? 'bg-red-50' : ''}`}
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg">{producto.nombre}</h3>
+                    <p className="text-sm text-gray-600">{producto.categoria}</p>
+                  </div>
+                  <span className={`text-2xl font-bold ${producto.cantidad <= producto.stockMinimo ? 'text-red-600' : 'text-gray-900'}`}>
+                    {producto.cantidad}
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+                  <div>
+                    <p className="text-gray-600">Precio Compra</p>
+                    <p className="font-semibold">Q{producto.precioCompra.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">Precio Venta</p>
+                    <p className="font-semibold">Q{producto.precioVenta.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">Ganancia</p>
+                    <p className="font-semibold text-green-600">Q{(producto.precioVenta - producto.precioCompra).toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">Margen</p>
+                    <p className={`font-semibold ${((producto.precioVenta - producto.precioCompra) / producto.precioCompra * 100) > 50 ? 'text-green-600' : 'text-yellow-600'}`}>
+                      {producto.precioCompra > 0 ? ((producto.precioVenta - producto.precioCompra) / producto.precioCompra * 100).toFixed(1) : '0'}%
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2 pt-2 border-t">
+                  <button
+                    onClick={() => abrirModalMovimiento(producto)}
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 text-sm"
+                  >
+                    <TrendingUp size={16} />
+                    Movimiento
+                  </button>
+                  <button
+                    onClick={() => abrirModalEditar(producto)}
+                    className="flex items-center justify-center gap-2 px-3 py-2 bg-yellow-50 text-yellow-600 rounded-md hover:bg-yellow-100"
+                  >
+                    <Edit size={16} />
+                  </button>
+                  <button
+                    onClick={() => eliminarProducto(producto._id)}
+                    className="flex items-center justify-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
+            
+            {productos.length === 0 && (
+              <div className="p-8 text-center text-gray-500">
+                <Package size={48} className="mx-auto mb-4 opacity-50" />
+                <p>No hay productos registrados</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Movimientos Recientes */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-4 sm:p-6 border-b">
+            <h2 className="text-lg sm:text-xl font-semibold">Movimientos Recientes</h2>
+          </div>
+          
+          {/* Vista Desktop */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nota</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {movimientos.slice(0, 10).map(mov => (
+                  <tr key={mov._id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      {new Date(mov.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        mov.tipo === 'Entrada' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {mov.tipo}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">{mov.producto.nombre}</td>
+                    <td className="px-6 py-4 whitespace-nowrap font-semibold">{mov.cantidad}</td>
+                    <td className="px-6 py-4">{mov.nota}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Vista M\u00f3vil - Cards */}
+          <div className="md:hidden divide-y">
+            {movimientos.slice(0, 10).map(mov => (
+              <div key={mov._id} className="p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1">
+                    <p className="font-semibold">{mov.producto.nombre}</p>
+                    <p className="text-xs text-gray-500">{new Date(mov.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                    mov.tipo === 'Entrada' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  }`}>
+                    {mov.tipo}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600">Cantidad:</span>
+                  <span className="font-semibold">{mov.cantidad}</span>
+                </div>
+                {mov.nota && (
+                  <p className="text-sm text-gray-600 mt-2">{mov.nota}</p>
+                )}
+              </div>
+            ))}
+            
+            {movimientos.length === 0 && (
+              <div className="p-8 text-center text-gray-500">
+                <p>No hay movimientos registrados</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+
+      {/* Modal Producto */}
+      {mostrarModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-lg max-w-md w-full p-4 sm:p-6 my-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">
+                {productoSeleccionado ? 'Editar Producto' : 'Nuevo Producto'}
+              </h3>
+              <button onClick={() => setMostrarModal(false)} className="text-gray-500 hover:text-gray-700">
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                <input
+                  type="text"
+                  value={formData.nombre}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                <select
+                  value={formData.categoria}
+                  onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-md"
+                >
+                  <option value="Papel">Papel</option>
+                  <option value="Tinta">Tinta</option>
+                  <option value="Material Promocional">Material Promocional</option>
+                  <option value="Servicios">Servicios</option>
+                  <option value="Otros">Otros</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+                  <input
+                    type="number"
+                    value={formData.cantidad}
+                    onChange={(e) => setFormData({ ...formData, cantidad: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border rounded-md"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock Mínimo</label>
+                  <input
+                    type="number"
+                    value={formData.stockMinimo}
+                    onChange={(e) => setFormData({ ...formData, stockMinimo: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border rounded-md"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Precio Compra</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.precioCompra}
+                    onChange={(e) => setFormData({ ...formData, precioCompra: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border rounded-md"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Precio Venta</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.precioVenta}
+                    onChange={(e) => setFormData({ ...formData, precioVenta: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border rounded-md"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <button
+                  onClick={guardarProducto}
+                  className="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+                >
+                  Guardar
+                </button>
+                <button
+                  onClick={() => setMostrarModal(false)}
+                  className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-md hover:bg-gray-300"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Movimiento */}
+      {mostrarModalMovimiento && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-lg max-w-md w-full p-4 sm:p-6 my-8 max-h-[90vh] overflow-y-auto sm:p-6 my-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">Registrar Movimiento</h3>
+              <button onClick={() => setMostrarModalMovimiento(false)} className="text-gray-500 hover:text-gray-700">
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                <select
+                  value={movimientoData.tipo}
+                  onChange={(e) => setMovimientoData({ ...movimientoData, tipo: e.target.value as 'Entrada' | 'Salida' })}
+                  className="w-full px-3 py-2 border rounded-md"
+                >
+                  <option value="Entrada">Entrada</option>
+                  <option value="Salida">Salida</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={movimientoData.cantidad}
+                  onChange={(e) => setMovimientoData({ ...movimientoData, cantidad: Number(e.target.value) })}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nota (opcional)</label>
+                <textarea
+                  value={movimientoData.nota}
+                  onChange={(e) => setMovimientoData({ ...movimientoData, nota: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-md"
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <button
+                  onClick={guardarMovimiento}
+                  className="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+                >
+                  Guardar
+                </button>
+                <button
+                  onClick={() => setMostrarModalMovimiento(false)}
+                  className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-md hover:bg-gray-300"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
