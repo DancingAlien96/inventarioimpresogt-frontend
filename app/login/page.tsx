@@ -29,6 +29,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
+          <img src="/logo.png" alt="Logo ImpresoGT" className="mx-auto mb-4 w-20 h-20 rounded-full shadow" />
           <h1 className="text-4xl font-bold text-gray-900 mb-2">ImpresoGT</h1>
           <h2 className="text-xl text-gray-600">Sistema de Inventario</h2>
         </div>
