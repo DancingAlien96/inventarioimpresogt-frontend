@@ -1,14 +1,15 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
-import { LogOut, Package, Home, List, Briefcase, Box } from "lucide-react";
+import { LogOut, Home, List, Briefcase, Box } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Sidebar() {
   const { logout } = useAuth();
   return (
-    <aside className="bg-white border-r w-56 min-h-screen flex flex-col py-6 px-4 fixed top-0 left-0 z-40">
+    <aside className="flex flex-col min-h-screen py-6 px-4">
       <div className="mb-8 flex items-center gap-2">
-        <img src="/logo.png" alt="Logo" className="w-10 h-10 rounded-full" />
+        <Image src="/logo.png" alt="Logo" width={40} height={40} className="rounded-full" />
         <span className="font-bold text-lg text-gray-900">ImpresoGT</span>
       </div>
       <nav className="flex-1 space-y-2">

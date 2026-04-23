@@ -16,7 +16,6 @@ import {
   Trash2,
   X,
   Briefcase,
-  Menu
 } from 'lucide-react';
 import { Bar, Pie } from 'react-chartjs-2';
 import {
@@ -104,7 +103,6 @@ function DashboardContent() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarModalMovimiento, setMostrarModalMovimiento] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
-  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
 
   const [formData, setFormData] = useState({
     nombre: '',
