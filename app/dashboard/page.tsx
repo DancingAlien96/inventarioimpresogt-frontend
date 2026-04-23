@@ -304,7 +304,7 @@ function DashboardContent() {
                 scales: {
                   y: {
                     beginAtZero: true,
-                    ticks: { callback: (v: number) => `Q${v}` }
+                    ticks: { callback: (v: string | number) => `Q${v}` }
                   }
                 }
               }}
