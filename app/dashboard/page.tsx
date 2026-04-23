@@ -18,6 +18,18 @@ import {
   Briefcase,
   Menu
 } from 'lucide-react';
+import { Bar, Pie } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+} from 'chart.js';
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 interface Producto {
   _id: string;
@@ -51,6 +63,43 @@ function DashboardContent() {
   const { usuario, logout } = useAuth();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
+
+  // --- Lógica de gráficas ---
+  // Ventas por producto (sumatoria de precioVenta * cantidad por producto, solo salidas)
+  let productosVenta: string[] = [];
+  let montosVenta: number[] = [];
+  // Ventas por mes (sumatoria de precioVenta * cantidad por mes, solo salidas)
+  let meses: string[] = [];
+  let ventasPorMes: number[] = [];
+  if (Array.isArray(movimientos) && movimientos.length > 0 && Array.isArray(productos) && productos.length > 0) {
+    // Ventas por producto
+    const ventasPorProducto: { [nombre: string]: number } = {};
+    movimientos.forEach(mov => {
+      if (mov.tipo === 'Salida') {
+        const nombre = mov.producto?.nombre || 'Desconocido';
+        // Buscar el precioVenta actual del producto
+        const prod = productos.find(p => p._id === mov.producto?._id);
+        const precioVenta = prod?.precioVenta || 0;
+        ventasPorProducto[nombre] = (ventasPorProducto[nombre] || 0) + (precioVenta * mov.cantidad);
+      }
+    });
+    productosVenta = Object.keys(ventasPorProducto);
+    montosVenta = productosVenta.map(n => ventasPorProducto[n]);
+
+    // Ventas por mes
+    const ventasMes: { [mes: string]: number } = {};
+    movimientos.forEach(mov => {
+      if (mov.tipo === 'Salida') {
+        const fecha = new Date(mov.createdAt);
+        const mes = fecha.toLocaleString('default', { month: 'short', year: '2-digit' });
+        const prod = productos.find(p => p._id === mov.producto?._id);
+        const precioVenta = prod?.precioVenta || 0;
+        ventasMes[mes] = (ventasMes[mes] || 0) + (precioVenta * mov.cantidad);
+      }
+    });
+    meses = Object.keys(ventasMes);
+    ventasPorMes = meses.map(m => ventasMes[m]);
+  }
   const [cargando, setCargando] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarModalMovimiento, setMostrarModalMovimiento] = useState(false);
@@ -190,53 +239,12 @@ function DashboardContent() {
               <p className="text-xs sm:text-sm text-gray-600">Bienvenido, {usuario?.nombre}</p>
             </div>
             
-            {/* Botones Desktop */}
-            <div className="hidden md:flex items-center gap-4">
-              <Link 
-                href="/trabajos"
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                <Briefcase size={18} />
-                Ver Trabajos
-              </Link>
-              <button
-                onClick={logout}
-                className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
-              >
-                <LogOut size={18} />
-                Salir
-              </button>
-            </div>
+            {/* Botones Desktop eliminados */}
             
-            {/* Menú Móvil */}
-            <button
-              onClick={() => setMenuMovilAbierto(!menuMovilAbierto)}
-              className="md:hidden p-2 text-gray-600 hover:text-gray-900"
-            >
-              <Menu size={24} />
-            </button>
+            {/* Menú Móvil eliminado */}
           </div>
           
-          {/* Menú desplegable móvil */}
-          {menuMovilAbierto && (
-            <div className="md:hidden mt-4 space-y-2 border-t pt-4">
-              <Link 
-                href="/trabajos"
-                onClick={() => setMenuMovilAbierto(false)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 w-full"
-              >
-                <Briefcase size={18} />
-                Ver Trabajos
-              </Link>
-              <button
-                onClick={() => { logout(); setMenuMovilAbierto(false); }}
-                className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-md w-full"
-              >
-                <LogOut size={18} />
-                Salir
-              </button>
-            </div>
-          )}
+          {/* Menú desplegable móvil eliminado */}
         </div>
       </header>
 
@@ -252,7 +260,6 @@ function DashboardContent() {
               <Package className="text-blue-600" size={40} />
             </div>
           </div>
-
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex items-center justify-between">
               <div>
@@ -262,7 +269,6 @@ function DashboardContent() {
               <TrendingUp className="text-green-600" size={40} />
             </div>
           </div>
-
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex items-center justify-between">
               <div>
@@ -271,6 +277,76 @@ function DashboardContent() {
               </div>
               <AlertTriangle className="text-red-600" size={40} />
             </div>
+          </div>
+        </div>
+
+        {/* Gráficas de análisis */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
+            <h3 className="font-bold text-gray-900 mb-4">Ventas por mes</h3>
+            <Bar
+              data={{
+                labels: meses,
+                datasets: [
+                  {
+                    label: 'Ventas',
+                    data: ventasPorMes,
+                    backgroundColor: 'rgba(59,130,246,0.7)',
+                  },
+                ],
+              }}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: { position: 'top' as const },
+                  title: { display: false },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: { callback: (v: number) => `Q${v}` }
+                  }
+                }
+              }}
+              height={260}
+            />
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
+            <h3 className="font-bold text-gray-900 mb-4">Ventas por producto</h3>
+            <Pie
+              data={{
+                labels: productosVenta,
+                datasets: [
+                  {
+                    label: 'Ventas',
+                    data: montosVenta,
+                    backgroundColor: [
+                      'rgba(59,130,246,0.7)',
+                      'rgba(239,68,68,0.7)',
+                      'rgba(16,185,129,0.7)',
+                      'rgba(245,158,11,0.7)',
+                      'rgba(168,85,247,0.7)',
+                      'rgba(251,191,36,0.7)',
+                      'rgba(236,72,153,0.7)',
+                      'rgba(34,197,94,0.7)',
+                    ],
+                  },
+                ],
+              }}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: { position: 'bottom' as const },
+                  title: { display: false },
+                  tooltip: {
+                    callbacks: {
+                      label: (ctx: any) => `Q${ctx.parsed}`
+                    }
+                  }
+                },
+              }}
+              height={260}
+            />
           </div>
         </div>
 
@@ -289,7 +365,7 @@ function DashboardContent() {
         {/* Productos */}
         <div className="bg-white rounded-lg shadow mb-8">
           <div className="p-4 sm:p-6 border-b flex justify-between items-center">
-            <h2 className="text-lg sm:text-xl font-semibold">Productos</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">Productos</h2>
             <button
               onClick={abrirModalNuevo}
               className="flex items-center gap-1 sm:gap-2 bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm sm:text-base"
@@ -317,23 +393,17 @@ function DashboardContent() {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {productos.map(producto => (
-                  <tr key={producto._id} className={producto.cantidad <= producto.stockMinimo ? 'bg-red-50' : ''}>
-                    <td className="px-6 py-4 whitespace-nowrap font-medium">{producto.nombre}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{producto.categoria}</td>
+                  <tr key={producto._id} className={producto.cantidad <= producto.stockMinimo ? 'bg-red-50' : 'bg-white'}>
+                    <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900">{producto.nombre}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">{producto.categoria}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`font-semibold ${producto.cantidad <= producto.stockMinimo ? 'text-red-600' : 'text-gray-900'}`}>
-                        {producto.cantidad}
-                      </span>
+                      <span className={`font-bold ${producto.cantidad <= producto.stockMinimo ? 'text-red-600' : 'text-gray-900'}`}>{producto.cantidad}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">Q{producto.precioCompra.toFixed(2)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">Q{producto.precioVenta.toFixed(2)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-green-600">
-                      Q{(producto.precioVenta - producto.precioCompra).toFixed(2)}
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">Q{producto.precioCompra.toFixed(2)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">Q{producto.precioVenta.toFixed(2)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap font-bold text-green-600">Q{(producto.precioVenta - producto.precioCompra).toFixed(2)}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`font-semibold ${((producto.precioVenta - producto.precioCompra) / producto.precioCompra * 100) > 50 ? 'text-green-600' : 'text-yellow-600'}`}>
-                        {producto.precioCompra > 0 ? ((producto.precioVenta - producto.precioCompra) / producto.precioCompra * 100).toFixed(1) : '0'}%
-                      </span>
+                      <span className={`font-bold ${((producto.precioVenta - producto.precioCompra) / producto.precioCompra * 100) > 50 ? 'text-green-600' : 'text-yellow-600'}`}>{producto.precioCompra > 0 ? ((producto.precioVenta - producto.precioCompra) / producto.precioCompra * 100).toFixed(1) : '0'}%</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex gap-2">
@@ -440,7 +510,7 @@ function DashboardContent() {
         {/* Movimientos Recientes */}
         <div className="bg-white rounded-lg shadow">
           <div className="p-4 sm:p-6 border-b">
-            <h2 className="text-lg sm:text-xl font-semibold">Movimientos Recientes</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">Movimientos Recientes</h2>
           </div>
           
           {/* Vista Desktop */}

@@ -24,6 +24,7 @@ interface Producto {
   _id: string;
   nombre: string;
   precioCompra: number;
+  precioVenta: number;
 }
 
 interface Material {
@@ -67,6 +68,7 @@ function TrabajosContent() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [trabajoSeleccionado, setTrabajoSeleccionado] = useState<Trabajo | null>(null);
   const [expandido, setExpandido] = useState<string | null>(null);
+  const [precioCompraSeleccionado, setPrecioCompraSeleccionado] = useState(0);
 
   const [formData, setFormData] = useState({
     nombre: '',
@@ -123,29 +125,30 @@ function TrabajosContent() {
 
   const actualizarMaterial = (index: number, campo: string, valor: any) => {
     const nuevosMateriales = [...formData.materiales];
-    
+    let nuevoPrecioVenta = formData.precioVenta;
+
     if (campo === 'producto') {
       const productoSeleccionado = productos.find(p => p._id === valor);
       if (productoSeleccionado) {
-        nuevosMateriales[index].producto = valor;
         nuevosMateriales[index].nombreProducto = productoSeleccionado.nombre;
         nuevosMateriales[index].costoUnitario = productoSeleccionado.precioCompra;
         nuevosMateriales[index].costoTotal = productoSeleccionado.precioCompra * nuevosMateriales[index].cantidad;
+        nuevoPrecioVenta = productoSeleccionado.precioVenta;
+        setPrecioCompraSeleccionado(productoSeleccionado.precioCompra);
       }
     } else if (campo === 'cantidad') {
-      nuevosMateriales[index].cantidad = Number(valor);
       nuevosMateriales[index].costoTotal = nuevosMateriales[index].costoUnitario * Number(valor);
     } else if (campo === 'costoUnitario') {
-      nuevosMateriales[index].costoUnitario = Number(valor);
       nuevosMateriales[index].costoTotal = Number(valor) * nuevosMateriales[index].cantidad;
     }
 
     const costoProduccion = calcularCostoProduccion(nuevosMateriales, formData.costosAdicionales);
-    setFormData({ ...formData, materiales: nuevosMateriales, costoProduccion });
+    setFormData({ ...formData, materiales: nuevosMateriales, costoProduccion, precioVenta: nuevoPrecioVenta });
   };
 
   const eliminarMaterial = (index: number) => {
-    const nuevosMateriales = formData.materiales.filter((_, i) => i !== index);
+    const nuevosMateriales = [...formData.materiales];
+    nuevosMateriales.splice(index, 1);
     const costoProduccion = calcularCostoProduccion(nuevosMateriales, formData.costosAdicionales);
     setFormData({ ...formData, materiales: nuevosMateriales, costoProduccion });
   };
@@ -157,6 +160,7 @@ function TrabajosContent() {
 
   const abrirModalNuevo = () => {
     setTrabajoSeleccionado(null);
+    setPrecioCompraSeleccionado(0);
     setFormData({
       nombre: '',
       descripcion: '',
@@ -172,8 +176,9 @@ function TrabajosContent() {
     setMostrarModal(true);
   };
 
-  const abrirModalEditar = (trabajo: Trabajo) => {
+  const editarTrabajo = (trabajo: Trabajo) => {
     setTrabajoSeleccionado(trabajo);
+    setPrecioCompraSeleccionado(0);
     setFormData({
       nombre: trabajo.nombre,
       descripcion: trabajo.descripcion,
@@ -184,22 +189,55 @@ function TrabajosContent() {
       costoProduccion: trabajo.costoProduccion,
       precioVenta: trabajo.precioVenta,
       estado: trabajo.estado,
-      fechaEntrega: trabajo.fechaEntrega ? trabajo.fechaEntrega.split('T')[0] : '',
+      fechaEntrega: trabajo.fechaEntrega || '',
     });
     setMostrarModal(true);
   };
 
   const guardarTrabajo = async () => {
+    const materialesValidos = formData.materiales
+      .filter((m) => m.producto && m.producto !== '')
+      .map((m) => ({
+        ...m,
+        cantidad: Number(m.cantidad),
+        costoUnitario: Number(m.costoUnitario),
+        costoTotal: Number(m.costoTotal) || Number(m.cantidad) * Number(m.costoUnitario)
+      }));
+
+    const costoProduccion = calcularCostoProduccion(materialesValidos, formData.costosAdicionales);
+    const payload = {
+      ...formData,
+      materiales: materialesValidos,
+      costoProduccion,
+      fechaEntrega: formData.fechaEntrega || undefined,
+    };
+
+    if (!payload.nombre || payload.nombre.trim() === '') {
+      alert('El nombre del trabajo es obligatorio.');
+      return;
+    }
+
+    if (!payload.precioVenta || payload.precioVenta <= 0) {
+      alert('Debe seleccionar un producto con precio de venta válido.');
+      return;
+    }
+
     try {
       if (trabajoSeleccionado) {
-        await api.put(`/trabajos/${trabajoSeleccionado._id}`, formData);
+        await api.put(`/trabajos/${trabajoSeleccionado._id}`, payload);
       } else {
-        await api.post('/trabajos', formData);
+        await api.post('/trabajos', payload);
       }
       setMostrarModal(false);
       cargarDatos();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al guardar trabajo:', error);
+      if (error.response) {
+        console.error('Detalle del servidor:', error.response.data);
+        alert(`Error al guardar trabajo: ${error.response.data?.message || 'Revisa la consola.'}`);
+      } else {
+        alert('Error al guardar trabajo. Revisa la consola para más detalles.');
+      }
     }
   };
 
@@ -306,7 +344,7 @@ function TrabajosContent() {
         {/* Lista de Trabajos */}
         <div className="bg-white rounded-lg shadow">
           <div className="p-4 sm:p-6 border-b flex justify-between items-center">
-            <h2 className="text-lg sm:text-xl font-semibold">Todos los Trabajos</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">Todos los Trabajos</h2>
             <button
               onClick={abrirModalNuevo}
               className="flex items-center gap-1 sm:gap-2 bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm sm:text-base"
@@ -323,7 +361,7 @@ function TrabajosContent() {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex-1">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                      <h3 className="text-base sm:text-lg font-semibold">{trabajo.nombre}</h3>
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900">{trabajo.nombre}</h3>
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${
                         trabajo.estado === 'Completado' ? 'bg-green-100 text-green-800' :
                         trabajo.estado === 'En Proceso' ? 'bg-blue-100 text-blue-800' :
@@ -334,10 +372,10 @@ function TrabajosContent() {
                       </span>
                     </div>
                     {trabajo.cliente && (
-                      <p className="text-sm text-gray-600">Cliente: {trabajo.cliente}</p>
+                      <p className="text-sm text-gray-800">Cliente: {trabajo.cliente}</p>
                     )}
                     {trabajo.descripcion && (
-                      <p className="text-xs sm:text-sm text-gray-500 mt-1">{trabajo.descripcion}</p>
+                      <p className="text-xs sm:text-sm text-gray-900 mt-1">{trabajo.descripcion}</p>
                     )}
                   </div>
                   
@@ -365,7 +403,7 @@ function TrabajosContent() {
                         {expandido === trabajo._id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                       </button>
                       <button
-                        onClick={() => abrirModalEditar(trabajo)}
+                        onClick={() => editarTrabajo(trabajo)}
                         className="text-yellow-600 hover:text-yellow-800"
                         title="Editar"
                       >
@@ -439,7 +477,7 @@ function TrabajosContent() {
               <h3 className="text-xl font-semibold">
                 {trabajoSeleccionado ? 'Editar Trabajo' : 'Nuevo Trabajo'}
               </h3>
-              <button onClick={() => setMostrarModal(false)} className="text-gray-500 hover:text-gray-700">
+              <button onClick={() => setMostrarModal(false)} className="text-black hover:text-gray-700">
                 <X size={24} />
               </button>
             </div>
@@ -447,34 +485,34 @@ function TrabajosContent() {
             <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Trabajo *</label>
+                  <label className="block text-sm font-medium text-black mb-1">Nombre del Trabajo *</label>
                   <input
                     type="text"
                     value={formData.nombre}
                     onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-md"
+                    className="w-full px-3 py-2 border rounded-md text-black placeholder-black"
                     placeholder="Ej: 1000 volantes full color"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
+                  <label className="block text-sm font-medium text-black mb-1">Cliente</label>
                   <input
                     type="text"
                     value={formData.cliente}
                     onChange={(e) => setFormData({ ...formData, cliente: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-md"
+                    className="w-full px-3 py-2 border rounded-md text-black placeholder-black"
                     placeholder="Nombre del cliente"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                <label className="block text-sm font-medium text-black mb-1">Descripción</label>
                 <textarea
                   value={formData.descripcion}
                   onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
+                  className="w-full px-3 py-2 border rounded-md text-black placeholder-black"
                   rows={2}
                   placeholder="Detalles del trabajo"
                 />
@@ -482,7 +520,7 @@ function TrabajosContent() {
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-700">Materiales Utilizados</label>
+                  <label className="block text-sm font-medium text-black">Materiales Utilizados</label>
                   <button
                     onClick={agregarMaterial}
                     className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
@@ -498,7 +536,7 @@ function TrabajosContent() {
                       <select
                         value={material.producto}
                         onChange={(e) => actualizarMaterial(index, 'producto', e.target.value)}
-                        className="w-full px-2 py-1 border rounded text-sm"
+                        className="w-full px-2 py-1 border rounded text-sm text-black"
                       >
                         <option value="">Seleccionar producto</option>
                         {productos.map(p => (
@@ -511,7 +549,7 @@ function TrabajosContent() {
                         type="number"
                         value={material.cantidad}
                         onChange={(e) => actualizarMaterial(index, 'cantidad', e.target.value)}
-                        className="w-full px-2 py-1 border rounded text-sm"
+                        className="w-full px-2 py-1 border rounded text-sm text-black placeholder-black"
                         placeholder="Cant."
                       />
                     </div>
@@ -521,7 +559,7 @@ function TrabajosContent() {
                         step="0.01"
                         value={material.costoUnitario}
                         onChange={(e) => actualizarMaterial(index, 'costoUnitario', e.target.value)}
-                        className="w-full px-2 py-1 border rounded text-sm"
+                        className="w-full px-2 py-1 border rounded text-sm text-black placeholder-black"
                         placeholder="Costo unit."
                       />
                     </div>
@@ -530,7 +568,7 @@ function TrabajosContent() {
                         type="text"
                         value={`Q${material.costoTotal.toFixed(2)}`}
                         disabled
-                        className="w-full px-2 py-1 border rounded text-sm bg-gray-100"
+                        className="w-full px-2 py-1 border rounded text-sm bg-gray-100 text-black"
                       />
                     </div>
                     <div className="col-span-1 flex items-center">
@@ -547,24 +585,24 @@ function TrabajosContent() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Costos Adicionales</label>
+                  <label className="block text-sm font-medium text-black mb-1">Costos Adicionales</label>
                   <input
                     type="number"
                     step="0.01"
                     value={formData.costosAdicionales}
                     onChange={(e) => actualizarCostosAdicionales(Number(e.target.value))}
-                    className="w-full px-3 py-2 border rounded-md"
+                    className="w-full px-3 py-2 border rounded-md text-black placeholder-black"
                     placeholder="Mano de obra, electricidad, etc."
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nota de Costos</label>
+                  <label className="block text-sm font-medium text-black mb-1">Nota de Costos</label>
                   <input
                     type="text"
                     value={formData.notaCostos}
                     onChange={(e) => setFormData({ ...formData, notaCostos: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-md"
+                    className="w-full px-3 py-2 border rounded-md text-black placeholder-black"
                     placeholder="Descripción costos adicionales"
                   />
                 </div>
@@ -572,28 +610,30 @@ function TrabajosContent() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-lg">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Costo de Producción</p>
+                  <p className="text-sm text-black mb-1">Costo de Producción</p>
                   <p className="text-xl font-bold text-red-600">Q{formData.costoProduccion.toFixed(2)}</p>
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1">Precio de Venta *</label>
+                  <label className="block text-sm text-black mb-1">Precio de Venta *</label>
                   <input
                     type="number"
                     step="0.01"
                     value={formData.precioVenta}
                     onChange={(e) => setFormData({ ...formData, precioVenta: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border rounded-md"
+                    className="w-full px-3 py-2 border rounded-md text-black placeholder-black"
                   />
                 </div>
 
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Ganancia</p>
+                  <p className="text-sm text-black mb-1">Ganancia</p>
                   <p className="text-xl font-bold text-green-600">
                     Q{(formData.precioVenta - formData.costoProduccion).toFixed(2)}
                   </p>
                   <p className="text-sm text-green-600">
-                    ({formData.costoProduccion > 0 
+                    ({precioCompraSeleccionado > 0
+                      ? (((formData.precioVenta - precioCompraSeleccionado) / precioCompraSeleccionado) * 100).toFixed(1)
+                      : formData.costoProduccion > 0
                       ? (((formData.precioVenta - formData.costoProduccion) / formData.costoProduccion) * 100).toFixed(1)
                       : '0'}%)
                   </p>
@@ -602,11 +642,11 @@ function TrabajosContent() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                  <label className="block text-sm font-medium text-black mb-1">Estado</label>
                   <select
                     value={formData.estado}
                     onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-md"
+                    className="w-full px-3 py-2 border rounded-md text-black"
                   >
                     <option value="Cotizado">Cotizado</option>
                     <option value="En Proceso">En Proceso</option>
@@ -616,12 +656,12 @@ function TrabajosContent() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Entrega</label>
+                  <label className="block text-sm font-medium text-black mb-1">Fecha de Entrega</label>
                   <input
                     type="date"
                     value={formData.fechaEntrega}
                     onChange={(e) => setFormData({ ...formData, fechaEntrega: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-md"
+                    className="w-full px-3 py-2 border rounded-md text-black"
                   />
                 </div>
               </div>
