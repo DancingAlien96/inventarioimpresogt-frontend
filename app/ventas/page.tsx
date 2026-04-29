@@ -138,7 +138,8 @@ function VentasContent() {
         nuevosMateriales[index].costoTotal = productoSeleccionado.precioCompra * nuevosMateriales[index].cantidad;
       }
     } else if (campo === 'cantidad') {
-      const cantidad = valor === '' ? 0 : Number(valor);
+      let cantidad = valor === '' ? 0 : Number(valor);
+      if (cantidad < 0) cantidad = 0;
       nuevosMateriales[index].cantidad = cantidad;
       nuevosMateriales[index].costoTotal = nuevosMateriales[index].costoUnitario * cantidad;
     } else if (campo === 'costoUnitario') {
@@ -556,6 +557,7 @@ function VentasContent() {
                     <div className="col-span-2">
                       <input
                         type="number"
+                        min={0}
                         value={material.cantidad === 0 ? '' : material.cantidad}
                         onChange={(e) => actualizarMaterial(index, 'cantidad', e.target.value)}
                         onFocus={(e) => {
