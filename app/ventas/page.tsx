@@ -533,16 +533,13 @@ function VentasContent() {
                 </div>
 
                 <div className="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-600 mb-2 px-2">
-                  <div className="col-span-5">Producto</div>
-                  <div className="col-span-2">Cantidad</div>
-                  <div className="col-span-2">Costo compra</div>
-                  <div className="col-span-2">Precio venta</div>
-                  <div className="col-span-2">Costo total</div>
-                  <div className="col-span-1" />
+                  <div className="col-span-7">Producto</div>
+                  <div className="col-span-3">Cantidad vendida</div>
+                  <div className="col-span-2">Venta total</div>
                 </div>
                 {formData.materiales.map((material, index) => (
                   <div key={index} className="grid grid-cols-12 gap-2 mb-2 p-2 bg-gray-50 rounded">
-                    <div className="col-span-5">
+                    <div className="col-span-7">
                       <select
                         value={material.producto}
                         onChange={(e) => actualizarMaterial(index, 'producto', e.target.value)}
@@ -565,29 +562,11 @@ function VentasContent() {
                     </div>
                     <div className="col-span-2">
                       <input
-                        type="number"
-                        step="0.01"
-                        value={material.costoUnitario}
-                        onChange={(e) => actualizarMaterial(index, 'costoUnitario', e.target.value)}
-                        className="w-full px-2 py-1 border rounded text-sm text-black placeholder-black"
-                        placeholder="Costo compra"
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <input
                         type="text"
-                        value={`Q${material.precioVentaUnitario.toFixed(2)}`}
+                        value={`Q${(material.precioVentaUnitario * material.cantidad).toFixed(2)}`}
                         disabled
                         className="w-full px-2 py-1 border rounded text-sm bg-gray-100 text-black"
-                        placeholder="Precio venta"
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <input
-                        type="text"
-                        value={`Q${material.costoTotal.toFixed(2)}`}
-                        disabled
-                        className="w-full px-2 py-1 border rounded text-sm bg-gray-100 text-black"
+                        placeholder="Venta total"
                       />
                     </div>
                     <div className="col-span-1 flex items-center">
