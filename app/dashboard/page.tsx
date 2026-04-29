@@ -285,7 +285,14 @@ function DashboardContent() {
 
   const productosBajoStock = productos.filter(p => p.cantidad <= p.stockMinimo);
   const valorTotal = productos.reduce((acc, p) => acc + (p.cantidad * p.precioVenta), 0);
-  const totalGastos = gastos.reduce((sum, gasto) => sum + gasto.monto, 0);
+  const gastosCompras = movimientos.reduce((sum, mov) => {
+    if (mov.tipo === 'Entrada') {
+      const producto = productos.find(p => p._id === mov.producto?._id);
+      return sum + (producto?.precioCompra || 0) * mov.cantidad;
+    }
+    return sum;
+  }, 0);
+  const totalGastos = gastosCompras + gastos.reduce((sum, gasto) => sum + gasto.monto, 0);
   const capitalDisponible = resumenTrabajos.totalGanancias - totalGastos;
 
   if (cargando) {
