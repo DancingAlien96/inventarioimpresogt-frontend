@@ -219,7 +219,7 @@ function VentasContent() {
     }
 
     if (!payload.precioVenta || payload.precioVenta <= 0) {
-      alert('Debe seleccionar un producto con precio de venta vÃ¡lido.');
+      alert('Debe seleccionar un producto con precio de venta válido.');
       return;
     }
 
@@ -236,13 +236,13 @@ function VentasContent() {
       if (error instanceof Error) {
         alert(error.message);
       } else {
-        alert('Error al guardar trabajo. Revisa la consola para mÃ¡s detalles.');
+        alert('Error al guardar trabajo. Revisa la consola para más detalles.');
       }
     }
   };
 
   const eliminarTrabajo = async (id: string) => {
-    if (confirm('Â¿EstÃ¡s seguro de eliminar este trabajo?')) {
+    if (confirm('¿Estás seguro de eliminar este trabajo?')) {
       try {
         await api.delete(`/ventas/${id}`);
         cargarDatos();
@@ -298,7 +298,7 @@ function VentasContent() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* EstadÃ­sticas */}
+        {/* Estadísticas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
           <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
             <div className="flex items-center justify-between">
@@ -463,7 +463,7 @@ function VentasContent() {
             {trabajos.length === 0 && (
               <div className="p-12 text-center text-gray-500">
                 <Briefcase size={48} className="mx-auto mb-4 opacity-50" />
-                <p>No hay ventas registradas aÃºn</p>
+                <p>No hay ventas registradas aún</p>
                 <p className="text-sm">Crea tu primer registro para empezar a controlar ventas y ganancias</p>
               </div>
             )}
@@ -510,7 +510,7 @@ function VentasContent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-1">DescripciÃ³n</label>
+                <label className="block text-sm font-medium text-black mb-1">Descripción</label>
                 <textarea
                   value={formData.descripcion}
                   onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
@@ -601,14 +601,14 @@ function VentasContent() {
                     value={formData.notaCostos}
                     onChange={(e) => setFormData({ ...formData, notaCostos: e.target.value })}
                     className="w-full px-3 py-2 border rounded-md text-black placeholder-black"
-                    placeholder="DescripciÃ³n costos adicionales"
+                    placeholder="Descripción costos adicionales"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-lg">
                 <div>
-                  <p className="text-sm text-black mb-1">Costo de ProducciÃ³n</p>
+                  <p className="text-sm text-black mb-1">Costo de Producción</p>
                   <p className="text-xl font-bold text-red-600">Q{formData.costoProduccion.toFixed(2)}</p>
                 </div>
 

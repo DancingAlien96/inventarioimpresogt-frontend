@@ -68,7 +68,7 @@ function DashboardContent() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
 
-  // --- LÃ³gica de grÃ¡ficas ---
+  // --- Lógica de gráficas ---
   // Ventas por producto (sumatoria de precioVenta * cantidad por producto, solo salidas)
   let productosVenta: string[] = [];
   let montosVenta: number[] = [];
@@ -187,7 +187,7 @@ function DashboardContent() {
 
   const guardarGasto = () => {
     if (gastoData.monto <= 0) {
-      alert('Ingresa un monto vÃ¡lido para el gasto.');
+      alert('Ingresa un monto válido para el gasto.');
       return;
     }
     const nuevoGasto: Gasto = {
@@ -244,7 +244,7 @@ function DashboardContent() {
   };
 
   const eliminarProducto = async (id: string) => {
-    if (confirm('Â¿EstÃ¡s seguro de eliminar este producto?')) {
+    if (confirm('¿Estás seguro de eliminar este producto?')) {
       try {
         await api.delete(`/productos/${id}`);
         cargarDatos();
@@ -309,15 +309,15 @@ function DashboardContent() {
             
             {/* Botones Desktop eliminados */}
             
-            {/* MenÃº MÃ³vil eliminado */}
+            {/* Menú Móvil eliminado */}
           </div>
           
-          {/* MenÃº desplegable mÃ³vil eliminado */}
+          {/* Menú desplegable móvil eliminado */}
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* EstadÃ­sticas */}
+        {/* Estadísticas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex items-center justify-between">
@@ -395,7 +395,7 @@ function DashboardContent() {
           </div>
         </div>
 
-        {/* GrÃ¡ficas de anÃ¡lisis */}
+        {/* Gráficas de análisis */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
             <h3 className="font-bold text-gray-900 mb-4">Ventas por mes</h3>
@@ -497,7 +497,7 @@ function DashboardContent() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">CategorÃ­a</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">P. Compra</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">P. Venta</th>
@@ -704,7 +704,7 @@ function DashboardContent() {
           </div>
           <div className="p-4 sm:p-6">
             {gastos.length === 0 ? (
-              <p className="text-gray-600">No hay gastos registrados aÃºn.</p>
+              <p className="text-gray-600">No hay gastos registrados aún.</p>
             ) : (
               <div className="space-y-3">
                 {gastos.slice(0, 8).map(gasto => (
@@ -750,7 +750,7 @@ function DashboardContent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">CategorÃ­a</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
                 <select
                   value={formData.categoria}
                   onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
@@ -776,7 +776,7 @@ function DashboardContent() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock MÃ­nimo</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock Mínimo</label>
                   <input
                     type="number"
                     value={formData.stockMinimo}
@@ -841,13 +841,13 @@ function DashboardContent() {
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">CategorÃ­a</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
                 <input
                   type="text"
                   value={gastoData.categoria}
                   onChange={(e) => setGastoData({ ...gastoData, categoria: e.target.value })}
                   className="w-full px-3 py-2 border rounded-md"
-                  placeholder="Ej. Servicios, Materiales, AdministraciÃ³n"
+                  placeholder="Ej. Servicios, Materiales, Administración"
                 />
               </div>
               <div>
@@ -869,7 +869,7 @@ function DashboardContent() {
                   onChange={(e) => setGastoData({ ...gastoData, nota: e.target.value })}
                   className="w-full px-3 py-2 border rounded-md"
                   rows={3}
-                  placeholder="DescripciÃ³n opcional"
+                  placeholder="Descripción opcional"
                 />
               </div>
               <div className="flex gap-2 pt-4">
