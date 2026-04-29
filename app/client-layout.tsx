@@ -26,7 +26,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           {sidebarOpen && (
             <>
               <div className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={() => setSidebarOpen(false)} />
-              <aside className="fixed inset-y-0 left-0 z-50 w-72 bg-slate-950 text-slate-100 border-r border-slate-900 py-4 px-3 md:hidden h-screen overflow-y-auto shadow-2xl">
+              <aside className="fixed inset-y-0 left-0 z-50 w-72 bg-slate-950 text-slate-100 border-r border-slate-900 py-4 px-3 md:hidden h-screen overflow-hidden shadow-2xl">
                 <div className="flex justify-end mb-4 px-1">
                   <button onClick={() => setSidebarOpen(false)} className="rounded-full bg-white/10 p-2 text-slate-100 hover:bg-white/20">
                     <X size={22} />
