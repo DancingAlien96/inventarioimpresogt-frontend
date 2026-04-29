@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -68,7 +68,7 @@ function DashboardContent() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
 
-  // --- Lógica de gráficas ---
+  // --- LÃ³gica de grÃ¡ficas ---
   // Ventas por producto (sumatoria de precioVenta * cantidad por producto, solo salidas)
   let productosVenta: string[] = [];
   let montosVenta: number[] = [];
@@ -144,8 +144,8 @@ function DashboardContent() {
     try {
       const [resProductos, resMovimientos, resResumen] = await Promise.all([
         api.get('/productos'),
-        api.get('/movimientos'),
-        api.get('/trabajos/estadisticas/resumen'),
+        api.get('/compras'),
+        api.get('/ventas/estadisticas/resumen'),
       ]);
       setProductos(resProductos.data);
       setMovimientos(resMovimientos.data);
@@ -187,7 +187,7 @@ function DashboardContent() {
 
   const guardarGasto = () => {
     if (gastoData.monto <= 0) {
-      alert('Ingresa un monto válido para el gasto.');
+      alert('Ingresa un monto vÃ¡lido para el gasto.');
       return;
     }
     const nuevoGasto: Gasto = {
@@ -244,7 +244,7 @@ function DashboardContent() {
   };
 
   const eliminarProducto = async (id: string) => {
-    if (confirm('¿Estás seguro de eliminar este producto?')) {
+    if (confirm('Â¿EstÃ¡s seguro de eliminar este producto?')) {
       try {
         await api.delete(`/productos/${id}`);
         cargarDatos();
@@ -266,7 +266,7 @@ function DashboardContent() {
 
   const guardarMovimiento = async () => {
     try {
-      await api.post('/movimientos', {
+      await api.post('/compras', {
         tipo: movimientoData.tipo,
         producto: movimientoData.productoId,
         cantidad: movimientoData.cantidad,
@@ -309,15 +309,15 @@ function DashboardContent() {
             
             {/* Botones Desktop eliminados */}
             
-            {/* Menú Móvil eliminado */}
+            {/* MenÃº MÃ³vil eliminado */}
           </div>
           
-          {/* Menú desplegable móvil eliminado */}
+          {/* MenÃº desplegable mÃ³vil eliminado */}
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Estadísticas */}
+        {/* EstadÃ­sticas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex items-center justify-between">
@@ -395,7 +395,7 @@ function DashboardContent() {
           </div>
         </div>
 
-        {/* Gráficas de análisis */}
+        {/* GrÃ¡ficas de anÃ¡lisis */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <div className="bg-white p-6 rounded-lg shadow flex flex-col items-center">
             <h3 className="font-bold text-gray-900 mb-4">Ventas por mes</h3>
@@ -468,7 +468,7 @@ function DashboardContent() {
         {/* Alertas de bajo stock */}
         {productosBajoStock.length > 0 && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
-            <h3 className="font-semibold text-red-800 mb-2">⚠️ Productos con bajo stock:</h3>
+            <h3 className="font-semibold text-red-800 mb-2">âš ï¸ Productos con bajo stock:</h3>
             <ul className="list-disc list-inside text-red-700">
               {productosBajoStock.map(p => (
                 <li key={p._id}>{p.nombre} - Solo {p.cantidad} unidades</li>
@@ -497,7 +497,7 @@ function DashboardContent() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">CategorÃ­a</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">P. Compra</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">P. Venta</th>
@@ -622,10 +622,10 @@ function DashboardContent() {
           </div>
         </div>
 
-        {/* Movimientos Recientes */}
+        {/* Compras Recientes */}
         <div className="bg-white rounded-lg shadow">
           <div className="p-4 sm:p-6 border-b">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900">Movimientos Recientes</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">Compras Recientes</h2>
           </div>
           
           {/* Vista Desktop */}
@@ -689,7 +689,7 @@ function DashboardContent() {
             
             {movimientos.length === 0 && (
               <div className="p-8 text-center text-gray-500">
-                <p>No hay movimientos registrados</p>
+                <p>No hay compras registradas</p>
               </div>
             )}
           </div>
@@ -704,7 +704,7 @@ function DashboardContent() {
           </div>
           <div className="p-4 sm:p-6">
             {gastos.length === 0 ? (
-              <p className="text-gray-600">No hay gastos registrados aún.</p>
+              <p className="text-gray-600">No hay gastos registrados aÃºn.</p>
             ) : (
               <div className="space-y-3">
                 {gastos.slice(0, 8).map(gasto => (
@@ -750,7 +750,7 @@ function DashboardContent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">CategorÃ­a</label>
                 <select
                   value={formData.categoria}
                   onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
@@ -776,7 +776,7 @@ function DashboardContent() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock Mínimo</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock MÃ­nimo</label>
                   <input
                     type="number"
                     value={formData.stockMinimo}
@@ -841,13 +841,13 @@ function DashboardContent() {
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">CategorÃ­a</label>
                 <input
                   type="text"
                   value={gastoData.categoria}
                   onChange={(e) => setGastoData({ ...gastoData, categoria: e.target.value })}
                   className="w-full px-3 py-2 border rounded-md"
-                  placeholder="Ej. Servicios, Materiales, Administración"
+                  placeholder="Ej. Servicios, Materiales, AdministraciÃ³n"
                 />
               </div>
               <div>
@@ -869,7 +869,7 @@ function DashboardContent() {
                   onChange={(e) => setGastoData({ ...gastoData, nota: e.target.value })}
                   className="w-full px-3 py-2 border rounded-md"
                   rows={3}
-                  placeholder="Descripción opcional"
+                  placeholder="DescripciÃ³n opcional"
                 />
               </div>
               <div className="flex gap-2 pt-4">
@@ -957,3 +957,4 @@ function DashboardContent() {
     </div>
   );
 }
+

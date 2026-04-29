@@ -17,8 +17,8 @@ interface Producto {
   nombre: string;
 }
 
-export default function MovimientosPage() {
-  const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
+export default function ComprasPage() {
+  const [compras, setCompras] = useState<Movimiento[]>([]);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -28,23 +28,25 @@ export default function MovimientosPage() {
     productoId: "",
     cantidad: 1,
   });
+  const [selectedMovimiento, setSelectedMovimiento] = useState<Movimiento | null>(null);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
     Promise.all([
-      api.get("/movimientos"),
+      api.get("/compras"),
       api.get("/productos")
     ])
       .then(([movRes, prodRes]) => {
-        setMovimientos(movRes.data);
+        setCompras(movRes.data);
         setProductos(prodRes.data);
       })
-      .catch(() => setError("Error al cargar movimientos o productos"))
+      .catch(() => setError("Error al cargar compras o productos"))
       .finally(() => setLoading(false));
   }, []);
 
   const handleOpenModal = () => {
+    setSelectedMovimiento(null);
     setForm({ tipo: "Entrada", productoId: productos[0]?._id || "", cantidad: 1 });
     setFormError("");
     setShowModal(true);
@@ -52,11 +54,38 @@ export default function MovimientosPage() {
 
   const handleCloseModal = () => {
     setShowModal(false);
+    setSelectedMovimiento(null);
     setFormError("");
   };
 
+  const handleEditMovimiento = (movimiento: Movimiento) => {
+    setSelectedMovimiento(movimiento);
+    setForm({
+      tipo: movimiento.tipo,
+      productoId: movimiento.producto?._id || "",
+      cantidad: movimiento.cantidad,
+    });
+    setFormError("");
+    setShowModal(true);
+  };
+
+  const handleDeleteMovimiento = async (id: string) => {
+    if (!confirm('¿Estás seguro de eliminar esta compra?')) return;
+    try {
+      setLoading(true);
+      await api.delete(`/compras/${id}`);
+      const movRes = await api.get('/compras');
+      setCompras(movRes.data);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al eliminar movimiento');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const value = e.target.name === 'cantidad' ? Number(e.target.value) : e.target.value;
+    setForm({ ...form, [e.target.name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,17 +97,25 @@ export default function MovimientosPage() {
     setSaving(true);
     setFormError("");
     try {
-      await api.post("/movimientos", {
-        tipo: form.tipo,
-        producto: form.productoId,
-        cantidad: Number(form.cantidad),
-      });
+      if (selectedMovimiento) {
+        await api.put(`/compras/${selectedMovimiento._id}`, {
+          tipo: form.tipo,
+          producto: form.productoId,
+          cantidad: Number(form.cantidad),
+        });
+      } else {
+        await api.post("/compras", {
+          tipo: form.tipo,
+          producto: form.productoId,
+          cantidad: Number(form.cantidad),
+        });
+      }
       setShowModal(false);
+      setSelectedMovimiento(null);
       setSaving(false);
-      // Recargar movimientos
       setLoading(true);
-      const movRes = await api.get("/movimientos");
-      setMovimientos(movRes.data);
+      const movRes = await api.get("/compras");
+      setCompras(movRes.data);
       setLoading(false);
     } catch (err: any) {
       setFormError(err.response?.data?.message || "Error al guardar movimiento");
@@ -89,12 +126,12 @@ export default function MovimientosPage() {
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Movimientos</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Compras</h1>
         <button
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           onClick={handleOpenModal}
         >
-          <Plus size={18} /> Nuevo movimiento
+          <Plus size={18} /> Nueva compra
         </button>
       </div>
 
@@ -115,7 +152,9 @@ export default function MovimientosPage() {
             >
               <X size={20} />
             </button>
-            <h2 className="text-lg font-bold mb-4 text-gray-900">Nuevo movimiento</h2>
+            <h2 className="text-lg font-bold mb-4 text-gray-900">
+              {selectedMovimiento ? 'Editar compra' : 'Nueva compra'}
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-gray-700 font-medium mb-1">Producto</label>
@@ -188,7 +227,7 @@ export default function MovimientosPage() {
 `}</style>
 
       {loading ? (
-        <div className="text-gray-700">Cargando movimientos...</div>
+        <div className="text-gray-700">Cargando compras...</div>
       ) : error ? (
         <div className="text-red-600">{error}</div>
       ) : (
@@ -204,22 +243,30 @@ export default function MovimientosPage() {
               </tr>
             </thead>
             <tbody>
-              {movimientos.length === 0 ? (
+              {compras.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-4 text-center text-gray-700">No hay movimientos registrados.</td>
+                  <td colSpan={5} className="px-4 py-4 text-center text-gray-700">No hay compras registradas.</td>
                 </tr>
               ) : (
-                movimientos.map(mov => (
+                compras.map(mov => (
                   <tr key={mov._id} className="border-t">
                     <td className="px-4 py-2 text-gray-900">{mov.producto?.nombre || "-"}</td>
                     <td className="px-4 py-2 text-gray-900">{mov.tipo}</td>
                     <td className="px-4 py-2 text-gray-900">{mov.cantidad}</td>
                     <td className="px-4 py-2 text-gray-900">{new Date(mov.fecha).toLocaleDateString()}</td>
                     <td className="px-4 py-2 flex gap-2">
-                      <button className="p-2 rounded hover:bg-blue-50" title="Editar">
+                      <button
+                      className="p-2 rounded hover:bg-blue-50"
+                      title="Editar compra"
+                      onClick={() => handleEditMovimiento(mov)}
+                    >
                         <Edit size={16} className="text-blue-600" />
                       </button>
-                      <button className="p-2 rounded hover:bg-red-50" title="Eliminar">
+                      <button
+                        className="p-2 rounded hover:bg-red-50"
+                        title="Eliminar"
+                        onClick={() => handleDeleteMovimiento(mov._id)}
+                      >
                         <Trash2 size={16} className="text-red-600" />
                       </button>
                     </td>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,15 +53,15 @@ interface Trabajo {
   createdAt: string;
 }
 
-export default function TrabajosPage() {
+export default function VentasPage() {
   return (
     <ProtectedRoute>
-      <TrabajosContent />
+      <VentasContent />
     </ProtectedRoute>
   );
 }
 
-function TrabajosContent() {
+function VentasContent() {
   const { logout } = useAuth();
   const [trabajos, setTrabajos] = useState<Trabajo[]>([]);
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -86,7 +86,7 @@ function TrabajosContent() {
   async function cargarDatos() {
     try {
       const [resTrabajos, resProductos] = await Promise.all([
-        api.get('/trabajos'),
+        api.get('/ventas'),
         api.get('/productos'),
       ]);
       setTrabajos(resTrabajos.data);
@@ -219,15 +219,15 @@ function TrabajosContent() {
     }
 
     if (!payload.precioVenta || payload.precioVenta <= 0) {
-      alert('Debe seleccionar un producto con precio de venta válido.');
+      alert('Debe seleccionar un producto con precio de venta vÃ¡lido.');
       return;
     }
 
     try {
       if (trabajoSeleccionado) {
-        await api.put(`/trabajos/${trabajoSeleccionado._id}`, payload);
+        await api.put(`/ventas/${trabajoSeleccionado._id}`, payload);
       } else {
-        await api.post('/trabajos', payload);
+        await api.post('/ventas', payload);
       }
       setMostrarModal(false);
       cargarDatos();
@@ -236,15 +236,15 @@ function TrabajosContent() {
       if (error instanceof Error) {
         alert(error.message);
       } else {
-        alert('Error al guardar trabajo. Revisa la consola para más detalles.');
+        alert('Error al guardar trabajo. Revisa la consola para mÃ¡s detalles.');
       }
     }
   };
 
   const eliminarTrabajo = async (id: string) => {
-    if (confirm('¿Estás seguro de eliminar este trabajo?')) {
+    if (confirm('Â¿EstÃ¡s seguro de eliminar este trabajo?')) {
       try {
-        await api.delete(`/trabajos/${id}`);
+        await api.delete(`/ventas/${id}`);
         cargarDatos();
       } catch (error) {
         console.error('Error al eliminar trabajo:', error);
@@ -256,7 +256,7 @@ function TrabajosContent() {
     setExpandido(expandido === id ? null : id);
   };
 
-  // Estadísticas
+  // EstadÃ­sticas
   const trabajosCompletados = trabajos.filter(t => t.estado === 'Completado');
   const totalVentas = trabajosCompletados.reduce((sum, t) => sum + t.precioVenta, 0);
   const totalCostos = trabajosCompletados.reduce((sum, t) => sum + t.costoProduccion, 0);
@@ -282,7 +282,7 @@ function TrabajosContent() {
                 <ArrowLeft size={24} />
               </Link>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Trabajos</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Ventas</h1>
                 <p className="text-xs sm:text-sm text-gray-600">Control de costos y ganancias</p>
               </div>
             </div>
@@ -298,7 +298,7 @@ function TrabajosContent() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Estadísticas */}
+        {/* EstadÃ­sticas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
           <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
             <div className="flex items-center justify-between">
@@ -341,17 +341,17 @@ function TrabajosContent() {
           </div>
         </div>
 
-        {/* Lista de Trabajos */}
+        {/* Lista de Ventas */}
         <div className="bg-white rounded-lg shadow">
           <div className="p-4 sm:p-6 border-b flex justify-between items-center">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900">Todos los Trabajos</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">Todas las Ventas</h2>
             <button
               onClick={abrirModalNuevo}
               className="flex items-center gap-1 sm:gap-2 bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm sm:text-base"
             >
               <Plus size={18} />
-              <span className="hidden sm:inline">Nuevo Trabajo</span>
-              <span className="sm:hidden">Nuevo</span>
+              <span className="hidden sm:inline">Nueva Venta</span>
+              <span className="sm:hidden">Nueva</span>
             </button>
           </div>
 
@@ -463,8 +463,8 @@ function TrabajosContent() {
             {trabajos.length === 0 && (
               <div className="p-12 text-center text-gray-500">
                 <Briefcase size={48} className="mx-auto mb-4 opacity-50" />
-                <p>No hay trabajos registrados aún</p>
-                <p className="text-sm">Crea tu primer trabajo para empezar a controlar costos y ganancias</p>
+                <p>No hay ventas registradas aÃºn</p>
+                <p className="text-sm">Crea tu primer registro para empezar a controlar ventas y ganancias</p>
               </div>
             )}
           </div>
@@ -477,7 +477,7 @@ function TrabajosContent() {
           <div className="bg-white rounded-lg max-w-3xl w-full p-4 sm:p-6 my-8 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold">
-                {trabajoSeleccionado ? 'Editar Trabajo' : 'Nuevo Trabajo'}
+                {trabajoSeleccionado ? 'Editar Venta' : 'Nueva Venta'}
               </h3>
               <button onClick={() => setMostrarModal(false)} className="text-black hover:text-gray-700">
                 <X size={24} />
@@ -510,7 +510,7 @@ function TrabajosContent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-1">Descripción</label>
+                <label className="block text-sm font-medium text-black mb-1">DescripciÃ³n</label>
                 <textarea
                   value={formData.descripcion}
                   onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
@@ -614,14 +614,14 @@ function TrabajosContent() {
                     value={formData.notaCostos}
                     onChange={(e) => setFormData({ ...formData, notaCostos: e.target.value })}
                     className="w-full px-3 py-2 border rounded-md text-black placeholder-black"
-                    placeholder="Descripción costos adicionales"
+                    placeholder="DescripciÃ³n costos adicionales"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-lg">
                 <div>
-                  <p className="text-sm text-black mb-1">Costo de Producción</p>
+                  <p className="text-sm text-black mb-1">Costo de ProducciÃ³n</p>
                   <p className="text-xl font-bold text-red-600">Q{formData.costoProduccion.toFixed(2)}</p>
                 </div>
 
@@ -695,3 +695,4 @@ function TrabajosContent() {
     </div>
   );
 }
+
