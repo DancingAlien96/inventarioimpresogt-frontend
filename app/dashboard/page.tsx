@@ -47,14 +47,6 @@ interface Movimiento {
   createdAt: string;
 }
 
-interface Gasto {
-  id: string;
-  categoria: string;
-  monto: number;
-  nota: string;
-  fecha: string;
-}
-
 export default function DashboardPage() {
   return (
     <ProtectedRoute>
@@ -125,19 +117,12 @@ function DashboardContent() {
     nota: '',
   });
 
-  const [gastos, setGastos] = useState<Gasto[]>([]);
   const [resumenTrabajos, setResumenTrabajos] = useState({
     totalTrabajos: 0,
     totalVentas: 0,
     totalCostos: 0,
     totalGanancias: 0,
     margenPromedio: 0,
-  });
-  const [mostrarModalGasto, setMostrarModalGasto] = useState(false);
-  const [gastoData, setGastoData] = useState({
-    categoria: 'Otros',
-    monto: 0,
-    nota: '',
   });
 
   async function cargarDatos() {
@@ -157,51 +142,13 @@ function DashboardContent() {
     }
   }
 
-  function cargarGastos() {
-    if (typeof window === 'undefined') return;
-    try {
-      const savedGastos = JSON.parse(localStorage.getItem('gastos') || '[]') as Gasto[];
-      setGastos(savedGastos);
-    } catch (error) {
-      console.error('Error al cargar gastos:', error);
-    }
-  }
-
   useEffect(() => {
     const timeout = window.setTimeout(() => {
       cargarDatos();
-      cargarGastos();
     }, 0);
 
     return () => window.clearTimeout(timeout);
   }, []);
-
-  const abrirModalGasto = () => {
-    setGastoData({
-      categoria: 'Otros',
-      monto: 0,
-      nota: '',
-    });
-    setMostrarModalGasto(true);
-  };
-
-  const guardarGasto = () => {
-    if (gastoData.monto <= 0) {
-      alert('Ingresa un monto válido para el gasto.');
-      return;
-    }
-    const nuevoGasto: Gasto = {
-      id: String(Date.now()),
-      categoria: gastoData.categoria,
-      monto: Number(gastoData.monto),
-      nota: gastoData.nota,
-      fecha: new Date().toISOString(),
-    };
-    const nuevosGastos = [nuevoGasto, ...gastos];
-    setGastos(nuevosGastos);
-    localStorage.setItem('gastos', JSON.stringify(nuevosGastos));
-    setMostrarModalGasto(false);
-  };
 
   const abrirModalNuevo = () => {
     setProductoSeleccionado(null);
@@ -285,14 +232,6 @@ function DashboardContent() {
 
   const productosBajoStock = productos.filter(p => p.cantidad <= p.stockMinimo);
   const valorTotal = productos.reduce((acc, p) => acc + (p.cantidad * p.precioVenta), 0);
-  const gastosCompras = movimientos.reduce((sum, mov) => {
-    if (mov.tipo === 'Entrada') {
-      const producto = productos.find(p => p._id === mov.producto?._id);
-      return sum + (producto?.precioCompra || 0) * mov.cantidad;
-    }
-    return sum;
-  }, 0);
-  const totalGastos = gastosCompras + gastos.reduce((sum, gasto) => sum + gasto.monto, 0);
   const capitalDisponible = resumenTrabajos.totalGanancias;
 
   if (cargando) {
@@ -322,7 +261,7 @@ function DashboardContent() {
 
       <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 space-y-6">
         {/* Estadísticas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex items-center justify-between">
               <div>
@@ -350,18 +289,9 @@ function DashboardContent() {
               <DollarSign className="text-indigo-600" size={40} />
             </div>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Gastos acumulados</p>
-                <p className="text-3xl font-bold text-red-600">Q{totalGastos.toFixed(2)}</p>
-              </div>
-              <TrendingDown className="text-red-600" size={40} />
-            </div>
-          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-4 sm:gap-6 mb-8">
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex justify-between items-center mb-3">
               <div>
@@ -374,27 +304,6 @@ function DashboardContent() {
               <p><span className="font-semibold">Total ventas completadas:</span> Q{resumenTrabajos.totalVentas.toFixed(2)}</p>
               <p><span className="font-semibold">Ganancia neta de trabajos:</span> Q{resumenTrabajos.totalGanancias.toFixed(2)}</p>
               <p className="text-sm text-gray-500">El capital disponible se actualiza con la ganancia neta de los trabajos completados.</p>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow">
-            <div className="flex justify-between items-center mb-3">
-              <div>
-                <h3 className="font-bold text-gray-900">Registrar gasto</h3>
-                <p className="text-sm text-gray-600">Agrega gastos fijos y ajusta el capital disponible.</p>
-              </div>
-              <button
-                type="button"
-                onClick={abrirModalGasto}
-                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
-              >
-                Nuevo gasto
-              </button>
-            </div>
-            <div className="space-y-2 text-sm text-gray-700">
-              <p><span className="font-semibold">Gastos totales:</span> Q{totalGastos.toFixed(2)}</p>
-              <p><span className="font-semibold">Margen promedio:</span> {resumenTrabajos.margenPromedio.toFixed(1)}%</p>
-              <p className="text-sm text-gray-500">Gastos adicionales se registran por separado para control, sin cambiar el capital disponible actual.</p>
             </div>
           </div>
         </div>
@@ -700,35 +609,6 @@ function DashboardContent() {
         </div>
       </main>
 
-      {/* Gastos recientes */}
-      <div className="max-w-7xl mx-auto px-4 pb-8 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow mb-8">
-          <div className="p-4 sm:p-6 border-b">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900">Gastos recientes</h2>
-          </div>
-          <div className="p-4 sm:p-6">
-            {gastos.length === 0 ? (
-              <p className="text-gray-600">No hay gastos registrados aún.</p>
-            ) : (
-              <div className="space-y-3">
-                {gastos.slice(0, 8).map(gasto => (
-                  <div key={gasto.id} className="rounded-lg border border-gray-200 p-4 bg-gray-50">
-                    <div className="flex justify-between items-start gap-4">
-                      <div>
-                        <p className="font-semibold text-gray-900">{gasto.categoria}</p>
-                        <p className="text-sm text-gray-600">{new Date(gasto.fecha).toLocaleDateString()}</p>
-                      </div>
-                      <p className="text-red-600 font-bold">Q{gasto.monto.toFixed(2)}</p>
-                    </div>
-                    {gasto.nota && <p className="mt-2 text-sm text-gray-700">{gasto.nota}</p>}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Modal Producto */}
       {mostrarModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
@@ -823,68 +703,6 @@ function DashboardContent() {
                 </button>
                 <button
                   onClick={() => setMostrarModal(false)}
-                  className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-md hover:bg-gray-300"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Gasto */}
-      {mostrarModalGasto && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white rounded-lg max-w-md w-full p-4 sm:p-6 my-8 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">Registrar Gasto</h3>
-              <button onClick={() => setMostrarModalGasto(false)} className="text-gray-500 hover:text-gray-700">
-                <X size={24} />
-              </button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
-                <input
-                  type="text"
-                  value={gastoData.categoria}
-                  onChange={(e) => setGastoData({ ...gastoData, categoria: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
-                  placeholder="Ej. Servicios, Materiales, Administración"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Monto</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={gastoData.monto}
-                  onChange={(e) => setGastoData({ ...gastoData, monto: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border rounded-md"
-                  placeholder="Q0.00"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nota</label>
-                <textarea
-                  value={gastoData.nota}
-                  onChange={(e) => setGastoData({ ...gastoData, nota: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
-                  rows={3}
-                  placeholder="Descripción opcional"
-                />
-              </div>
-              <div className="flex gap-2 pt-4">
-                <button
-                  onClick={guardarGasto}
-                  className="flex-1 bg-red-600 text-white py-2 rounded-md hover:bg-red-700"
-                >
-                  Guardar gasto
-                </button>
-                <button
-                  onClick={() => setMostrarModalGasto(false)}
                   className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-md hover:bg-gray-300"
                 >
                   Cancelar
