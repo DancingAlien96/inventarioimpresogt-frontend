@@ -125,8 +125,14 @@ function DashboardContent() {
     nota: '',
   });
 
-  const [capitalInicial, setCapitalInicial] = useState(0);
   const [gastos, setGastos] = useState<Gasto[]>([]);
+  const [resumenTrabajos, setResumenTrabajos] = useState({
+    totalTrabajos: 0,
+    totalVentas: 0,
+    totalCostos: 0,
+    totalGanancias: 0,
+    margenPromedio: 0,
+  });
   const [mostrarModalGasto, setMostrarModalGasto] = useState(false);
   const [gastoData, setGastoData] = useState({
     categoria: 'Otros',
@@ -136,12 +142,14 @@ function DashboardContent() {
 
   async function cargarDatos() {
     try {
-      const [resProductos, resMovimientos] = await Promise.all([
+      const [resProductos, resMovimientos, resResumen] = await Promise.all([
         api.get('/productos'),
         api.get('/movimientos'),
+        api.get('/trabajos/estadisticas/resumen'),
       ]);
       setProductos(resProductos.data);
       setMovimientos(resMovimientos.data);
+      setResumenTrabajos(resResumen.data);
     } catch (error) {
       console.error('Error al cargar datos:', error);
     } finally {
@@ -149,32 +157,24 @@ function DashboardContent() {
     }
   }
 
-  function cargarCapitalYGastos() {
+  function cargarGastos() {
     if (typeof window === 'undefined') return;
     try {
-      const savedCapital = Number(localStorage.getItem('capitalInicial') || 0);
       const savedGastos = JSON.parse(localStorage.getItem('gastos') || '[]') as Gasto[];
-      setCapitalInicial(savedCapital);
       setGastos(savedGastos);
     } catch (error) {
-      console.error('Error al cargar capital y gastos:', error);
+      console.error('Error al cargar gastos:', error);
     }
   }
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
       cargarDatos();
-      cargarCapitalYGastos();
+      cargarGastos();
     }, 0);
 
     return () => window.clearTimeout(timeout);
   }, []);
-
-  const guardarCapital = (valor: number) => {
-    const nuevoCapital = Number(valor);
-    setCapitalInicial(nuevoCapital);
-    localStorage.setItem('capitalInicial', nuevoCapital.toString());
-  };
 
   const abrirModalGasto = () => {
     setGastoData({
@@ -286,7 +286,7 @@ function DashboardContent() {
   const productosBajoStock = productos.filter(p => p.cantidad <= p.stockMinimo);
   const valorTotal = productos.reduce((acc, p) => acc + (p.cantidad * p.precioVenta), 0);
   const totalGastos = gastos.reduce((sum, gasto) => sum + gasto.monto, 0);
-  const capitalDisponible = capitalInicial - totalGastos;
+  const capitalDisponible = resumenTrabajos.totalGanancias - totalGastos;
 
   if (cargando) {
     return (
@@ -361,30 +361,15 @@ function DashboardContent() {
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex justify-between items-center mb-3">
               <div>
-                <h3 className="font-bold text-gray-900">Capital guardado</h3>
-                <p className="text-sm text-gray-600">Declara aquí el capital inicial que tengas disponible.</p>
+                <h3 className="font-bold text-gray-900">Resumen de ventas</h3>
+                <p className="text-sm text-gray-600">El capital proviene de ventas completadas y ganancias del trabajo.</p>
               </div>
               <DollarSign className="text-indigo-600" size={28} />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-              <div className="sm:col-span-2">
-                <label className="block text-sm text-gray-700 mb-1">Capital inicial</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={capitalInicial}
-                  onChange={(e) => setCapitalInicial(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => guardarCapital(capitalInicial)}
-                className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-              >
-                Guardar
-              </button>
+            <div className="space-y-2 text-sm text-gray-700">
+              <p><span className="font-semibold">Total ventas completadas:</span> Q{resumenTrabajos.totalVentas.toFixed(2)}</p>
+              <p><span className="font-semibold">Ganancia neta de trabajos:</span> Q{resumenTrabajos.totalGanancias.toFixed(2)}</p>
+              <p className="text-sm text-gray-500">El capital disponible se actualiza con las ventas completadas menos gastos adicionales.</p>
             </div>
           </div>
 
@@ -392,7 +377,7 @@ function DashboardContent() {
             <div className="flex justify-between items-center mb-3">
               <div>
                 <h3 className="font-bold text-gray-900">Registrar gasto</h3>
-                <p className="text-sm text-gray-600">Agrega gastos fijos y debítalos del capital guardado.</p>
+                <p className="text-sm text-gray-600">Agrega gastos fijos y ajusta el capital disponible.</p>
               </div>
               <button
                 type="button"
@@ -403,9 +388,9 @@ function DashboardContent() {
               </button>
             </div>
             <div className="space-y-2 text-sm text-gray-700">
-              <p><span className="font-semibold">Capital inicial:</span> Q{capitalInicial.toFixed(2)}</p>
               <p><span className="font-semibold">Gastos totales:</span> Q{totalGastos.toFixed(2)}</p>
-              <p className="text-sm text-gray-500">El capital disponible se actualiza automáticamente cuando registras gastos.</p>
+              <p><span className="font-semibold">Margen promedio:</span> {resumenTrabajos.margenPromedio.toFixed(1)}%</p>
+              <p className="text-sm text-gray-500">Gastos adicionales se restan de la ganancia del trabajo.</p>
             </div>
           </div>
         </div>

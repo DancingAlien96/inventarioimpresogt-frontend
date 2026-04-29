@@ -19,7 +19,6 @@ export default function ProductosPage() {
   const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
   const [form, setForm] = useState({
     nombre: "",
-    cantidad: 1,
     precioCompra: 0,
     precioVenta: 0,
   });
@@ -35,7 +34,7 @@ export default function ProductosPage() {
 
   const handleOpenModal = () => {
     setProductoSeleccionado(null);
-    setForm({ nombre: "", cantidad: 1, precioCompra: 0, precioVenta: 0 });
+    setForm({ nombre: "", precioCompra: 0, precioVenta: 0 });
     setFormError("");
     setShowModal(true);
   };
@@ -44,7 +43,6 @@ export default function ProductosPage() {
     setProductoSeleccionado(producto);
     setForm({
       nombre: producto.nombre,
-      cantidad: producto.cantidad,
       precioCompra: producto.precioCompra,
       precioVenta: producto.precioVenta,
     });
@@ -63,7 +61,7 @@ export default function ProductosPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.nombre || !form.cantidad || !form.precioCompra || !form.precioVenta) {
+    if (!form.nombre || !form.precioCompra || !form.precioVenta) {
       setFormError("Todos los campos son obligatorios");
       return;
     }
@@ -72,7 +70,7 @@ export default function ProductosPage() {
 
     const payload = {
       nombre: form.nombre,
-      cantidad: Number(form.cantidad),
+      cantidad: productoSeleccionado ? productoSeleccionado.cantidad : 0,
       precioCompra: Number(form.precioCompra),
       precioVenta: Number(form.precioVenta),
     };
@@ -89,8 +87,12 @@ export default function ProductosPage() {
       const res = await api.get("/productos");
       setProductos(res.data);
       setLoading(false);
-    } catch (err: any) {
-      setFormError(err.response?.data?.message || "Error al guardar producto");
+    } catch (err) {
+      if (err instanceof Error) {
+        setFormError(err.message);
+      } else {
+        setFormError("Error al guardar producto");
+      }
       setSaving(false);
     }
   };
@@ -139,7 +141,7 @@ export default function ProductosPage() {
             </button>
             <h2 className="text-lg font-bold mb-4 text-gray-900">{productoSeleccionado ? 'Editar producto' : 'Nuevo producto'}</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-              /* Animaciones para popup */
+              {/* Animaciones para popup */}
               <style jsx global>{`
                 @keyframes fadein {
                   from { opacity: 0; }
@@ -162,18 +164,6 @@ export default function ProductosPage() {
                   type="text"
                   name="nombre"
                   value={form.nombre}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2 text-black"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">Cantidad</label>
-                <input
-                  type="number"
-                  name="cantidad"
-                  min={1}
-                  value={form.cantidad}
                   onChange={handleChange}
                   className="w-full border rounded px-3 py-2 text-black"
                   required
@@ -228,7 +218,6 @@ export default function ProductosPage() {
             <thead>
               <tr className="bg-gray-100">
                 <th className="px-4 py-2 text-left text-gray-900 font-bold">Nombre</th>
-                <th className="px-4 py-2 text-left text-gray-900 font-bold">Cantidad</th>
                 <th className="px-4 py-2 text-left text-gray-900 font-bold">Precio Compra</th>
                 <th className="px-4 py-2 text-left text-gray-900 font-bold">Precio Venta</th>
                 <th className="px-4 py-2 text-left text-gray-900 font-bold">Acciones</th>
@@ -243,7 +232,6 @@ export default function ProductosPage() {
                 productos.map(producto => (
                   <tr key={producto._id} className="border-t">
                     <td className="px-4 py-2 text-gray-900">{producto.nombre}</td>
-                    <td className="px-4 py-2 text-gray-900">{producto.cantidad}</td>
                     <td className="px-4 py-2 text-gray-900">Q{producto.precioCompra.toFixed(2)}</td>
                     <td className="px-4 py-2 text-gray-900">Q{producto.precioVenta.toFixed(2)}</td>
                     <td className="px-4 py-2 flex gap-2">

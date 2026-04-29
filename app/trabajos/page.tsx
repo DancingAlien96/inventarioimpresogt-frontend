@@ -32,6 +32,7 @@ interface Material {
   nombreProducto: string;
   cantidad: number;
   costoUnitario: number;
+  precioVentaUnitario: number;
   costoTotal: number;
 }
 
@@ -61,14 +62,13 @@ export default function TrabajosPage() {
 }
 
 function TrabajosContent() {
-  const { usuario, logout } = useAuth();
+  const { logout } = useAuth();
   const [trabajos, setTrabajos] = useState<Trabajo[]>([]);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [cargando, setCargando] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [trabajoSeleccionado, setTrabajoSeleccionado] = useState<Trabajo | null>(null);
   const [expandido, setExpandido] = useState<string | null>(null);
-  const [precioCompraSeleccionado, setPrecioCompraSeleccionado] = useState(0);
 
   const [formData, setFormData] = useState({
     nombre: '',
@@ -83,11 +83,7 @@ function TrabajosContent() {
     fechaEntrega: '',
   });
 
-  useEffect(() => {
-    cargarDatos();
-  }, []);
-
-  const cargarDatos = async () => {
+  async function cargarDatos() {
     try {
       const [resTrabajos, resProductos] = await Promise.all([
         api.get('/trabajos'),
@@ -100,7 +96,12 @@ function TrabajosContent() {
     } finally {
       setCargando(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
 
   const calcularCostoProduccion = (materiales: Material[], costosAdicionales: number) => {
     const costoMateriales = materiales.reduce((sum, m) => sum + m.costoTotal, 0);
@@ -117,33 +118,35 @@ function TrabajosContent() {
           nombreProducto: '',
           cantidad: 1,
           costoUnitario: 0,
+          precioVentaUnitario: 0,
           costoTotal: 0,
         },
       ],
     });
   };
 
-  const actualizarMaterial = (index: number, campo: string, valor: any) => {
+  const actualizarMaterial = (index: number, campo: string, valor: string | number) => {
     const nuevosMateriales = [...formData.materiales];
-    let nuevoPrecioVenta = formData.precioVenta;
 
     if (campo === 'producto') {
       const productoSeleccionado = productos.find(p => p._id === valor);
       if (productoSeleccionado) {
         nuevosMateriales[index].nombreProducto = productoSeleccionado.nombre;
         nuevosMateriales[index].costoUnitario = productoSeleccionado.precioCompra;
+        nuevosMateriales[index].precioVentaUnitario = productoSeleccionado.precioVenta;
         nuevosMateriales[index].costoTotal = productoSeleccionado.precioCompra * nuevosMateriales[index].cantidad;
-        nuevoPrecioVenta = productoSeleccionado.precioVenta;
-        setPrecioCompraSeleccionado(productoSeleccionado.precioCompra);
       }
     } else if (campo === 'cantidad') {
+      nuevosMateriales[index].cantidad = Number(valor);
       nuevosMateriales[index].costoTotal = nuevosMateriales[index].costoUnitario * Number(valor);
     } else if (campo === 'costoUnitario') {
+      nuevosMateriales[index].costoUnitario = Number(valor);
       nuevosMateriales[index].costoTotal = Number(valor) * nuevosMateriales[index].cantidad;
     }
 
     const costoProduccion = calcularCostoProduccion(nuevosMateriales, formData.costosAdicionales);
-    setFormData({ ...formData, materiales: nuevosMateriales, costoProduccion, precioVenta: nuevoPrecioVenta });
+    const ingresoVentas = nuevosMateriales.reduce((sum, m) => sum + (m.precioVentaUnitario * m.cantidad), 0);
+    setFormData({ ...formData, materiales: nuevosMateriales, costoProduccion, precioVenta: ingresoVentas });
   };
 
   const eliminarMaterial = (index: number) => {
@@ -160,7 +163,6 @@ function TrabajosContent() {
 
   const abrirModalNuevo = () => {
     setTrabajoSeleccionado(null);
-    setPrecioCompraSeleccionado(0);
     setFormData({
       nombre: '',
       descripcion: '',
@@ -178,7 +180,6 @@ function TrabajosContent() {
 
   const editarTrabajo = (trabajo: Trabajo) => {
     setTrabajoSeleccionado(trabajo);
-    setPrecioCompraSeleccionado(0);
     setFormData({
       nombre: trabajo.nombre,
       descripcion: trabajo.descripcion,
@@ -230,11 +231,10 @@ function TrabajosContent() {
       }
       setMostrarModal(false);
       cargarDatos();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error al guardar trabajo:', error);
-      if (error.response) {
-        console.error('Detalle del servidor:', error.response.data);
-        alert(`Error al guardar trabajo: ${error.response.data?.message || 'Revisa la consola.'}`);
+      if (error instanceof Error) {
+        alert(error.message);
       } else {
         alert('Error al guardar trabajo. Revisa la consola para más detalles.');
       }
@@ -423,13 +423,14 @@ function TrabajosContent() {
                 {/* Detalles expandidos */}
                 {expandido === trabajo._id && (
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-semibold mb-2">Materiales Utilizados:</h4>
+                    <h4 className="font-semibold mb-2">Ventas Declaradas:</h4>
                     <table className="w-full text-sm mb-4">
                       <thead>
                         <tr className="text-left text-gray-600">
-                          <th className="pb-2">Material</th>
+                          <th className="pb-2">Producto</th>
                           <th className="pb-2">Cantidad</th>
-                          <th className="pb-2">Costo Unit.</th>
+                          <th className="pb-2">Costo Compra</th>
+                          <th className="pb-2">Precio Venta</th>
                           <th className="pb-2">Costo Total</th>
                         </tr>
                       </thead>
@@ -439,6 +440,7 @@ function TrabajosContent() {
                             <td className="py-2">{mat.nombreProducto}</td>
                             <td>{mat.cantidad}</td>
                             <td>Q{mat.costoUnitario.toFixed(2)}</td>
+                            <td>Q{mat.precioVentaUnitario.toFixed(2)}</td>
                             <td>Q{mat.costoTotal.toFixed(2)}</td>
                           </tr>
                         ))}
@@ -520,13 +522,13 @@ function TrabajosContent() {
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-black">Materiales Utilizados</label>
+                  <label className="block text-sm font-medium text-black">Ventas Declaradas</label>
                   <button
                     onClick={agregarMaterial}
                     className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
                   >
                     <Plus size={16} />
-                    Agregar Material
+                    Agregar Venta
                   </button>
                 </div>
 
@@ -560,7 +562,16 @@ function TrabajosContent() {
                         value={material.costoUnitario}
                         onChange={(e) => actualizarMaterial(index, 'costoUnitario', e.target.value)}
                         className="w-full px-2 py-1 border rounded text-sm text-black placeholder-black"
-                        placeholder="Costo unit."
+                        placeholder="Costo compra"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <input
+                        type="text"
+                        value={`Q${material.precioVentaUnitario.toFixed(2)}`}
+                        disabled
+                        className="w-full px-2 py-1 border rounded text-sm bg-gray-100 text-black"
+                        placeholder="Precio venta"
                       />
                     </div>
                     <div className="col-span-2">
@@ -615,13 +626,12 @@ function TrabajosContent() {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-black mb-1">Precio de Venta *</label>
+                  <label className="block text-sm text-black mb-1">Total ingresos de ventas</label>
                   <input
-                    type="number"
-                    step="0.01"
-                    value={formData.precioVenta}
-                    onChange={(e) => setFormData({ ...formData, precioVenta: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border rounded-md text-black placeholder-black"
+                    type="text"
+                    value={`Q${formData.precioVenta.toFixed(2)}`}
+                    disabled
+                    className="w-full px-3 py-2 border rounded-md bg-gray-100 text-black"
                   />
                 </div>
 
@@ -631,9 +641,7 @@ function TrabajosContent() {
                     Q{(formData.precioVenta - formData.costoProduccion).toFixed(2)}
                   </p>
                   <p className="text-sm text-green-600">
-                    ({precioCompraSeleccionado > 0
-                      ? (((formData.precioVenta - precioCompraSeleccionado) / precioCompraSeleccionado) * 100).toFixed(1)
-                      : formData.costoProduccion > 0
+                    ({formData.costoProduccion > 0
                       ? (((formData.precioVenta - formData.costoProduccion) / formData.costoProduccion) * 100).toFixed(1)
                       : '0'}%)
                   </p>
