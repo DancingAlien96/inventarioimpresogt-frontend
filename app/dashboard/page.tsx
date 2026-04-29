@@ -293,7 +293,7 @@ function DashboardContent() {
     return sum;
   }, 0);
   const totalGastos = gastosCompras + gastos.reduce((sum, gasto) => sum + gasto.monto, 0);
-  const capitalDisponible = resumenTrabajos.totalGanancias - totalGastos;
+  const capitalDisponible = resumenTrabajos.totalVentas - totalGastos;
 
   if (cargando) {
     return (
