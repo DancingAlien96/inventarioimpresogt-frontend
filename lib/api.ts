@@ -21,15 +21,41 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor para manejar errores de autenticación
+const mapFallbackUrl = (url?: string) => {
+  if (!url) return undefined;
+  const cleanUrl = url.split('?')[0];
+
+  if (cleanUrl.startsWith('/compras')) {
+    return url.replace('/compras', '/movimientos');
+  }
+  if (cleanUrl.startsWith('/ventas')) {
+    return url.replace('/ventas', '/trabajos');
+  }
+
+  return undefined;
+};
+
+// Interceptor para manejar errores de autenticación y rutas antiguas desplegadas
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const config = error.config;
+
+    if (error.response?.status === 404 && config && !config._retry) {
+      const fallbackUrl = mapFallbackUrl(config.url);
+      if (fallbackUrl) {
+        config._retry = true;
+        config.url = fallbackUrl;
+        return api(config);
+      }
+    }
+
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('usuario');
       window.location.href = '/login';
     }
+
     return Promise.reject(error);
   }
 );
