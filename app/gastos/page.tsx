@@ -9,6 +9,7 @@ interface Movimiento {
   tipo: string;
   cantidad: number;
   producto: { _id: string; nombre: string };
+  nota?: string;
   fecha: string;
 }
 
@@ -24,8 +25,9 @@ export default function GastosPage() {
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({
-    tipo: "Entrada",
+    tipo: "Salida",
     productoId: "",
+    nota: "",
     cantidad: 1,
   });
   const [selectedMovimiento, setSelectedMovimiento] = useState<Movimiento | null>(null);
@@ -54,7 +56,12 @@ export default function GastosPage() {
 
   const handleOpenModal = () => {
     setSelectedMovimiento(null);
-    setForm({ tipo: "Entrada", productoId: productos[0]?._id || "", cantidad: 1 });
+    setForm({
+      tipo: "Salida",
+      productoId: productos[0]?._id || "",
+      nota: "",
+      cantidad: 1,
+    });
     setFormError("");
     setShowModal(true);
   };
@@ -70,6 +77,7 @@ export default function GastosPage() {
     setForm({
       tipo: movimiento.tipo,
       productoId: movimiento.producto?._id || "",
+      nota: movimiento.nota || "",
       cantidad: movimiento.cantidad,
     });
     setFormError("");
@@ -97,25 +105,24 @@ export default function GastosPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.productoId || !form.cantidad) {
+    if (!form.nota || !form.cantidad) {
       setFormError("Todos los campos son obligatorios");
       return;
     }
     setSaving(true);
     setFormError("");
     try {
+      const payload = {
+        tipo: form.tipo,
+        producto: form.productoId,
+        cantidad: Number(form.cantidad),
+        nota: form.nota,
+      };
+
       if (selectedMovimiento) {
-        await api.put(`/compras/${selectedMovimiento._id}`, {
-          tipo: form.tipo,
-          producto: form.productoId,
-          cantidad: Number(form.cantidad),
-        });
+        await api.put(`/compras/${selectedMovimiento._id}`, payload);
       } else {
-        await api.post("/compras", {
-          tipo: form.tipo,
-          producto: form.productoId,
-          cantidad: Number(form.cantidad),
-        });
+        await api.post("/compras", payload);
       }
       setShowModal(false);
       setSelectedMovimiento(null);
@@ -164,35 +171,19 @@ export default function GastosPage() {
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-1">Producto</label>
-                <select
-                  name="productoId"
-                  value={form.productoId}
+                <label className="block text-gray-700 font-medium mb-1">Descripción del gasto</label>
+                <input
+                  type="text"
+                  name="nota"
+                  value={form.nota}
                   onChange={handleChange}
                   className="w-full border rounded px-3 py-2 text-black"
+                  placeholder="Ej: Compra de insumos"
                   required
-                >
-                  <option value="">Seleccione un producto</option>
-                  {productos.map(p => (
-                    <option key={p._id} value={p._id}>{p.nombre}</option>
-                  ))}
-                </select>
+                />
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-1">Tipo</label>
-                <select
-                  name="tipo"
-                  value={form.tipo}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2 text-black"
-                  required
-                >
-                  <option value="Entrada">Entrada</option>
-                  <option value="Salida">Salida</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">Cantidad</label>
+                <label className="block text-gray-700 font-medium mb-1">Cantidad gastada</label>
                 <input
                   type="number"
                   name="cantidad"
