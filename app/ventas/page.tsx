@@ -256,10 +256,10 @@ function VentasContent() {
     setExpandido(expandido === id ? null : id);
   };
 
-  // EstadÃ­sticas
-  const trabajosCompletados = trabajos.filter(t => t.estado === 'Completado');
-  const totalVentas = trabajosCompletados.reduce((sum, t) => sum + t.precioVenta, 0);
-  const totalCostos = trabajosCompletados.reduce((sum, t) => sum + t.costoProduccion, 0);
+  // Estadísticas
+  const trabajosFinalizados = trabajos.filter(t => ['Completado', 'Entregado'].includes(t.estado));
+  const totalVentas = trabajosFinalizados.reduce((sum, t) => sum + t.precioVenta, 0);
+  const totalCostos = trabajosFinalizados.reduce((sum, t) => sum + t.costoProduccion, 0);
   const totalGanancias = totalVentas - totalCostos;
   const margenPromedio = totalCostos > 0 ? (totalGanancias / totalCostos) * 100 : 0;
 
