@@ -4,18 +4,15 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import api from '@/lib/api';
-import Link from 'next/link';
 import { 
   Package, 
   TrendingUp, 
   TrendingDown, 
-  AlertTriangle, 
-  LogOut, 
   Plus, 
   Edit, 
   Trash2,
   X,
-  Briefcase,
+  DollarSign,
 } from 'lucide-react';
 import { Bar, Pie } from 'react-chartjs-2';
 import {
@@ -50,6 +47,14 @@ interface Movimiento {
   createdAt: string;
 }
 
+interface Gasto {
+  id: string;
+  categoria: string;
+  monto: number;
+  nota: string;
+  fecha: string;
+}
+
 export default function DashboardPage() {
   return (
     <ProtectedRoute>
@@ -59,7 +64,7 @@ export default function DashboardPage() {
 }
 
 function DashboardContent() {
-  const { usuario, logout } = useAuth();
+  const { usuario } = useAuth();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
 
@@ -120,11 +125,16 @@ function DashboardContent() {
     nota: '',
   });
 
-  useEffect(() => {
-    cargarDatos();
-  }, []);
+  const [capitalInicial, setCapitalInicial] = useState(0);
+  const [gastos, setGastos] = useState<Gasto[]>([]);
+  const [mostrarModalGasto, setMostrarModalGasto] = useState(false);
+  const [gastoData, setGastoData] = useState({
+    categoria: 'Otros',
+    monto: 0,
+    nota: '',
+  });
 
-  const cargarDatos = async () => {
+  async function cargarDatos() {
     try {
       const [resProductos, resMovimientos] = await Promise.all([
         api.get('/productos'),
@@ -137,6 +147,60 @@ function DashboardContent() {
     } finally {
       setCargando(false);
     }
+  }
+
+  function cargarCapitalYGastos() {
+    if (typeof window === 'undefined') return;
+    try {
+      const savedCapital = Number(localStorage.getItem('capitalInicial') || 0);
+      const savedGastos = JSON.parse(localStorage.getItem('gastos') || '[]') as Gasto[];
+      setCapitalInicial(savedCapital);
+      setGastos(savedGastos);
+    } catch (error) {
+      console.error('Error al cargar capital y gastos:', error);
+    }
+  }
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      cargarDatos();
+      cargarCapitalYGastos();
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
+  }, []);
+
+  const guardarCapital = (valor: number) => {
+    const nuevoCapital = Number(valor);
+    setCapitalInicial(nuevoCapital);
+    localStorage.setItem('capitalInicial', nuevoCapital.toString());
+  };
+
+  const abrirModalGasto = () => {
+    setGastoData({
+      categoria: 'Otros',
+      monto: 0,
+      nota: '',
+    });
+    setMostrarModalGasto(true);
+  };
+
+  const guardarGasto = () => {
+    if (gastoData.monto <= 0) {
+      alert('Ingresa un monto válido para el gasto.');
+      return;
+    }
+    const nuevoGasto: Gasto = {
+      id: String(Date.now()),
+      categoria: gastoData.categoria,
+      monto: Number(gastoData.monto),
+      nota: gastoData.nota,
+      fecha: new Date().toISOString(),
+    };
+    const nuevosGastos = [nuevoGasto, ...gastos];
+    setGastos(nuevosGastos);
+    localStorage.setItem('gastos', JSON.stringify(nuevosGastos));
+    setMostrarModalGasto(false);
   };
 
   const abrirModalNuevo = () => {
@@ -210,13 +274,19 @@ function DashboardContent() {
       });
       setMostrarModalMovimiento(false);
       cargarDatos();
-    } catch (error: any) {
-      alert(error.response?.data?.message || 'Error al crear movimiento');
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('Error al crear movimiento');
+      }
     }
   };
 
   const productosBajoStock = productos.filter(p => p.cantidad <= p.stockMinimo);
   const valorTotal = productos.reduce((acc, p) => acc + (p.cantidad * p.precioVenta), 0);
+  const totalGastos = gastos.reduce((sum, gasto) => sum + gasto.monto, 0);
+  const capitalDisponible = capitalInicial - totalGastos;
 
   if (cargando) {
     return (
@@ -248,7 +318,7 @@ function DashboardContent() {
 
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Estadísticas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex items-center justify-between">
               <div>
@@ -270,10 +340,72 @@ function DashboardContent() {
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Bajo Stock</p>
-                <p className="text-3xl font-bold text-red-600">{productosBajoStock.length}</p>
+                <p className="text-sm text-gray-600">Capital Disponible</p>
+                <p className={`text-3xl font-bold ${capitalDisponible < 0 ? 'text-red-600' : 'text-gray-900'}`}>Q{capitalDisponible.toFixed(2)}</p>
               </div>
-              <AlertTriangle className="text-red-600" size={40} />
+              <DollarSign className="text-indigo-600" size={40} />
+            </div>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Gastos acumulados</p>
+                <p className="text-3xl font-bold text-red-600">Q{totalGastos.toFixed(2)}</p>
+              </div>
+              <TrendingDown className="text-red-600" size={40} />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-8">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="flex justify-between items-center mb-3">
+              <div>
+                <h3 className="font-bold text-gray-900">Capital guardado</h3>
+                <p className="text-sm text-gray-600">Declara aquí el capital inicial que tengas disponible.</p>
+              </div>
+              <DollarSign className="text-indigo-600" size={28} />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+              <div className="sm:col-span-2">
+                <label className="block text-sm text-gray-700 mb-1">Capital inicial</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={capitalInicial}
+                  onChange={(e) => setCapitalInicial(Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => guardarCapital(capitalInicial)}
+                className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+              >
+                Guardar
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="flex justify-between items-center mb-3">
+              <div>
+                <h3 className="font-bold text-gray-900">Registrar gasto</h3>
+                <p className="text-sm text-gray-600">Agrega gastos fijos y debítalos del capital guardado.</p>
+              </div>
+              <button
+                type="button"
+                onClick={abrirModalGasto}
+                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+              >
+                Nuevo gasto
+              </button>
+            </div>
+            <div className="space-y-2 text-sm text-gray-700">
+              <p><span className="font-semibold">Capital inicial:</span> Q{capitalInicial.toFixed(2)}</p>
+              <p><span className="font-semibold">Gastos totales:</span> Q{totalGastos.toFixed(2)}</p>
+              <p className="text-sm text-gray-500">El capital disponible se actualiza automáticamente cuando registras gastos.</p>
             </div>
           </div>
         </div>
@@ -338,7 +470,7 @@ function DashboardContent() {
                   title: { display: false },
                   tooltip: {
                     callbacks: {
-                      label: (ctx: any) => `Q${ctx.parsed}`
+                      label: (ctx: { parsed: number }) => `Q${ctx.parsed}`
                     }
                   }
                 },
@@ -579,6 +711,35 @@ function DashboardContent() {
         </div>
       </main>
 
+      {/* Gastos recientes */}
+      <div className="max-w-7xl mx-auto px-4 pb-8 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-lg shadow mb-8">
+          <div className="p-4 sm:p-6 border-b">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">Gastos recientes</h2>
+          </div>
+          <div className="p-4 sm:p-6">
+            {gastos.length === 0 ? (
+              <p className="text-gray-600">No hay gastos registrados aún.</p>
+            ) : (
+              <div className="space-y-3">
+                {gastos.slice(0, 8).map(gasto => (
+                  <div key={gasto.id} className="rounded-lg border border-gray-200 p-4 bg-gray-50">
+                    <div className="flex justify-between items-start gap-4">
+                      <div>
+                        <p className="font-semibold text-gray-900">{gasto.categoria}</p>
+                        <p className="text-sm text-gray-600">{new Date(gasto.fecha).toLocaleDateString()}</p>
+                      </div>
+                      <p className="text-red-600 font-bold">Q{gasto.monto.toFixed(2)}</p>
+                    </div>
+                    {gasto.nota && <p className="mt-2 text-sm text-gray-700">{gasto.nota}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Modal Producto */}
       {mostrarModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
@@ -673,6 +834,68 @@ function DashboardContent() {
                 </button>
                 <button
                   onClick={() => setMostrarModal(false)}
+                  className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-md hover:bg-gray-300"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Gasto */}
+      {mostrarModalGasto && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-lg max-w-md w-full p-4 sm:p-6 my-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">Registrar Gasto</h3>
+              <button onClick={() => setMostrarModalGasto(false)} className="text-gray-500 hover:text-gray-700">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                <input
+                  type="text"
+                  value={gastoData.categoria}
+                  onChange={(e) => setGastoData({ ...gastoData, categoria: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-md"
+                  placeholder="Ej. Servicios, Materiales, Administración"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Monto</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={gastoData.monto}
+                  onChange={(e) => setGastoData({ ...gastoData, monto: Number(e.target.value) })}
+                  className="w-full px-3 py-2 border rounded-md"
+                  placeholder="Q0.00"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nota</label>
+                <textarea
+                  value={gastoData.nota}
+                  onChange={(e) => setGastoData({ ...gastoData, nota: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-md"
+                  rows={3}
+                  placeholder="Descripción opcional"
+                />
+              </div>
+              <div className="flex gap-2 pt-4">
+                <button
+                  onClick={guardarGasto}
+                  className="flex-1 bg-red-600 text-white py-2 rounded-md hover:bg-red-700"
+                >
+                  Guardar gasto
+                </button>
+                <button
+                  onClick={() => setMostrarModalGasto(false)}
                   className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-md hover:bg-gray-300"
                 >
                   Cancelar
