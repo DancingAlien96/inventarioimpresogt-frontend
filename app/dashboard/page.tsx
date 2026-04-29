@@ -293,7 +293,7 @@ function DashboardContent() {
     return sum;
   }, 0);
   const totalGastos = gastosCompras + gastos.reduce((sum, gasto) => sum + gasto.monto, 0);
-  const capitalDisponible = resumenTrabajos.totalVentas - totalGastos;
+  const capitalDisponible = resumenTrabajos.totalGanancias;
 
   if (cargando) {
     return (
@@ -373,7 +373,7 @@ function DashboardContent() {
             <div className="space-y-2 text-sm text-gray-700">
               <p><span className="font-semibold">Total ventas completadas:</span> Q{resumenTrabajos.totalVentas.toFixed(2)}</p>
               <p><span className="font-semibold">Ganancia neta de trabajos:</span> Q{resumenTrabajos.totalGanancias.toFixed(2)}</p>
-              <p className="text-sm text-gray-500">El capital disponible se actualiza con las ventas completadas menos gastos adicionales.</p>
+              <p className="text-sm text-gray-500">El capital disponible se actualiza con la ganancia neta de los trabajos completados.</p>
             </div>
           </div>
 
@@ -394,7 +394,7 @@ function DashboardContent() {
             <div className="space-y-2 text-sm text-gray-700">
               <p><span className="font-semibold">Gastos totales:</span> Q{totalGastos.toFixed(2)}</p>
               <p><span className="font-semibold">Margen promedio:</span> {resumenTrabajos.margenPromedio.toFixed(1)}%</p>
-              <p className="text-sm text-gray-500">Gastos adicionales se restan de la ganancia del trabajo.</p>
+              <p className="text-sm text-gray-500">Gastos adicionales se registran por separado para control, sin cambiar el capital disponible actual.</p>
             </div>
           </div>
         </div>
