@@ -304,28 +304,25 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="bg-white shadow">
+      <header className="bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">ImpresoGT</h1>
-              <p className="text-xs sm:text-sm text-gray-600">Bienvenido, {usuario?.nombre}</p>
+              <p className="text-sm uppercase tracking-[0.24em] text-slate-500">ImpresoGT</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Bienvenido, {usuario?.nombre}</h1>
             </div>
-            
-            {/* Botones Desktop eliminados */}
-            
-            {/* Menú Móvil eliminado */}
+            <div className="rounded-3xl bg-slate-100 px-4 py-3 text-slate-700 text-sm sm:text-base font-medium">
+              Dashboard de gestión
+            </div>
           </div>
-          
-          {/* Menú desplegable móvil eliminado */}
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 space-y-6">
         {/* Estadísticas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex items-center justify-between">
               <div>
