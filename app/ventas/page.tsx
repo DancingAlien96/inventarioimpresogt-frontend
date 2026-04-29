@@ -116,7 +116,7 @@ function VentasContent() {
         {
           producto: '',
           nombreProducto: '',
-          cantidad: 1,
+          cantidad: 0,
           costoUnitario: 0,
           precioVentaUnitario: 0,
           costoTotal: 0,
@@ -131,14 +131,16 @@ function VentasContent() {
     if (campo === 'producto') {
       const productoSeleccionado = productos.find(p => p._id === valor);
       if (productoSeleccionado) {
+        nuevosMateriales[index].producto = String(valor);
         nuevosMateriales[index].nombreProducto = productoSeleccionado.nombre;
         nuevosMateriales[index].costoUnitario = productoSeleccionado.precioCompra;
         nuevosMateriales[index].precioVentaUnitario = productoSeleccionado.precioVenta;
         nuevosMateriales[index].costoTotal = productoSeleccionado.precioCompra * nuevosMateriales[index].cantidad;
       }
     } else if (campo === 'cantidad') {
-      nuevosMateriales[index].cantidad = Number(valor);
-      nuevosMateriales[index].costoTotal = nuevosMateriales[index].costoUnitario * Number(valor);
+      const cantidad = valor === '' ? 0 : Number(valor);
+      nuevosMateriales[index].cantidad = cantidad;
+      nuevosMateriales[index].costoTotal = nuevosMateriales[index].costoUnitario * cantidad;
     } else if (campo === 'costoUnitario') {
       nuevosMateriales[index].costoUnitario = Number(valor);
       nuevosMateriales[index].costoTotal = Number(valor) * nuevosMateriales[index].cantidad;
@@ -554,8 +556,13 @@ function VentasContent() {
                     <div className="col-span-2">
                       <input
                         type="number"
-                        value={material.cantidad}
+                        value={material.cantidad === 0 ? '' : material.cantidad}
                         onChange={(e) => actualizarMaterial(index, 'cantidad', e.target.value)}
+                        onFocus={(e) => {
+                          if (e.currentTarget.value === '0') {
+                            actualizarMaterial(index, 'cantidad', '');
+                          }
+                        }}
                         className="w-full px-2 py-1 border rounded text-sm text-black placeholder-black"
                         placeholder="Cant."
                       />
