@@ -26,18 +26,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           {sidebarOpen && (
             <>
               <div className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={() => setSidebarOpen(false)} />
-              <aside className="fixed inset-y-0 left-0 z-50 w-72 bg-slate-950 text-slate-100 border-r border-slate-900 py-6 px-4 md:hidden h-screen overflow-y-auto shadow-2xl">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="grid place-items-center h-10 w-10 rounded-2xl bg-gradient-to-br from-sky-500 to-cyan-400">
-                      <span className="text-white font-bold">I</span>
-                    </div>
-                    <div>
-                      <p className="text-base font-semibold">ImpresoGT</p>
-                      <p className="text-xs uppercase text-slate-400">Gestiona tu negocio</p>
-                    </div>
-                  </div>
-                  <button onClick={() => setSidebarOpen(false)} className="text-slate-200 hover:text-white">
+              <aside className="fixed inset-y-0 left-0 z-50 w-72 bg-slate-950 text-slate-100 border-r border-slate-900 py-4 px-3 md:hidden h-screen overflow-y-auto shadow-2xl">
+                <div className="flex justify-end mb-4 px-1">
+                  <button onClick={() => setSidebarOpen(false)} className="rounded-full bg-white/10 p-2 text-slate-100 hover:bg-white/20">
                     <X size={22} />
                   </button>
                 </div>

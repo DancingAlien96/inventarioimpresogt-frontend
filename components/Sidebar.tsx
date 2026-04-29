@@ -17,21 +17,21 @@ export default function Sidebar() {
   const { logout } = useAuth();
 
   return (
-    <aside className="flex h-full min-h-screen flex-col bg-slate-950 text-slate-100 shadow-xl border-r border-slate-800">
-      <div className="px-6 py-5 border-b border-slate-800">
+    <aside className="flex h-full flex-col bg-slate-950 text-slate-100 shadow-2xl border-r border-slate-900">
+      <div className="px-5 py-4 border-b border-slate-900 bg-slate-950/95 backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <div className="grid place-items-center h-12 w-12 rounded-2xl bg-gradient-to-br from-sky-500 to-cyan-400 shadow-lg shadow-cyan-500/20">
-            <Image src="/logo.png" alt="Logo ImpresoGT" width={28} height={28} className="rounded-xl" />
+          <div className="grid place-items-center h-11 w-11 rounded-3xl bg-gradient-to-br from-sky-500 to-cyan-400 shadow-lg shadow-cyan-500/20">
+            <Image src="/logo.png" alt="Logo ImpresoGT" width={28} height={28} className="rounded-2xl" />
           </div>
           <div>
             <p className="text-lg font-semibold text-white">ImpresoGT</p>
-            <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Gestiona tu negocio</p>
+            <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Gestiona tu negocio</p>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-6">
-        <div className="mb-5 px-3 text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+      <div className="flex-1 overflow-y-auto px-3 py-5">
+        <div className="mb-4 px-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">
           Navegación
         </div>
 
@@ -50,7 +50,7 @@ export default function Sidebar() {
                 }`}
                 aria-current={active ? "page" : undefined}
               >
-                <span className="grid place-items-center h-11 w-11 rounded-3xl bg-slate-900 text-slate-300 transition duration-200 group-hover:text-white">
+                <span className={`grid place-items-center h-11 w-11 rounded-3xl transition duration-200 ${active ? 'bg-cyan-500 text-white' : 'bg-slate-900 text-slate-300 group-hover:bg-slate-800 group-hover:text-white'}`}>
                   <Icon size={18} />
                 </span>
                 <span>{item.label}</span>
