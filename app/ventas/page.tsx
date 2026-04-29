@@ -532,6 +532,14 @@ function VentasContent() {
                   </button>
                 </div>
 
+                <div className="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-600 mb-2 px-2">
+                  <div className="col-span-5">Producto</div>
+                  <div className="col-span-2">Cantidad</div>
+                  <div className="col-span-2">Costo compra</div>
+                  <div className="col-span-2">Precio venta</div>
+                  <div className="col-span-2">Costo total</div>
+                  <div className="col-span-1" />
+                </div>
                 {formData.materiales.map((material, index) => (
                   <div key={index} className="grid grid-cols-12 gap-2 mb-2 p-2 bg-gray-50 rounded">
                     <div className="col-span-5">
