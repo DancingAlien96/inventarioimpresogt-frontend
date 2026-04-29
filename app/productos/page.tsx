@@ -170,7 +170,7 @@ export default function ProductosPage() {
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-1">Precio Compra</label>
+                <label className="block text-gray-700 font-medium mb-1">Costo Produccion</label>
                 <input
                   type="number"
                   name="precioCompra"
@@ -218,7 +218,7 @@ export default function ProductosPage() {
             <thead>
               <tr className="bg-gray-100">
                 <th className="px-4 py-2 text-left text-gray-900 font-bold">Nombre</th>
-                <th className="px-4 py-2 text-left text-gray-900 font-bold">Precio Compra</th>
+                <th className="px-4 py-2 text-left text-gray-900 font-bold">Costo Produccion</th>
                 <th className="px-4 py-2 text-left text-gray-900 font-bold">Precio Venta</th>
                 <th className="px-4 py-2 text-left text-gray-900 font-bold">Acciones</th>
               </tr>
