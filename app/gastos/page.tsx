@@ -33,16 +33,23 @@ export default function GastosPage() {
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
-    Promise.all([
-      api.get("/compras"),
-      api.get("/productos")
-    ])
-      .then(([movRes, prodRes]) => {
+    const loadData = async () => {
+      try {
+        const [movRes, prodRes] = await Promise.all([
+          api.get("/compras"),
+          api.get("/productos")
+        ]);
         setGastos(movRes.data);
         setProductos(prodRes.data);
-      })
-      .catch(() => setError("Error al cargar gastos o productos"))
-      .finally(() => setLoading(false));
+      } catch (err: any) {
+        const message = err.response?.data?.message || err.message || "Error al cargar gastos o productos";
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
   const handleOpenModal = () => {
@@ -208,8 +215,8 @@ export default function GastosPage() {
           </div>
         </div>
       )}
-/* Animaciones para popup */
-<style jsx global>{`
+      {/* Animaciones para popup */}
+      <style jsx global>{`
   @keyframes fadein {
     from { opacity: 0; }
     to { opacity: 1; }
