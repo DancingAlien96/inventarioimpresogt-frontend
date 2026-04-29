@@ -17,8 +17,8 @@ interface Producto {
   nombre: string;
 }
 
-export default function ComprasPage() {
-  const [compras, setCompras] = useState<Movimiento[]>([]);
+export default function GastosPage() {
+  const [gastos, setGastos] = useState<Movimiento[]>([]);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -38,10 +38,10 @@ export default function ComprasPage() {
       api.get("/productos")
     ])
       .then(([movRes, prodRes]) => {
-        setCompras(movRes.data);
+        setGastos(movRes.data);
         setProductos(prodRes.data);
       })
-      .catch(() => setError("Error al cargar compras o productos"))
+      .catch(() => setError("Error al cargar gastos o productos"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -70,12 +70,12 @@ export default function ComprasPage() {
   };
 
   const handleDeleteMovimiento = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar esta compra?')) return;
+    if (!confirm('¿Estás seguro de eliminar este gasto?')) return;
     try {
       setLoading(true);
       await api.delete(`/compras/${id}`);
       const movRes = await api.get('/compras');
-      setCompras(movRes.data);
+      setGastos(movRes.data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al eliminar movimiento');
     } finally {
@@ -115,7 +115,7 @@ export default function ComprasPage() {
       setSaving(false);
       setLoading(true);
       const movRes = await api.get("/compras");
-      setCompras(movRes.data);
+      setGastos(movRes.data);
       setLoading(false);
     } catch (err: any) {
       setFormError(err.response?.data?.message || "Error al guardar movimiento");
@@ -126,12 +126,12 @@ export default function ComprasPage() {
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Compras</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Gastos</h1>
         <button
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           onClick={handleOpenModal}
         >
-          <Plus size={18} /> Nueva compra
+          <Plus size={18} /> Nuevo gasto
         </button>
       </div>
 
@@ -153,7 +153,7 @@ export default function ComprasPage() {
               <X size={20} />
             </button>
             <h2 className="text-lg font-bold mb-4 text-gray-900">
-              {selectedMovimiento ? 'Editar compra' : 'Nueva compra'}
+              {selectedMovimiento ? 'Editar gasto' : 'Nuevo gasto'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -227,7 +227,7 @@ export default function ComprasPage() {
 `}</style>
 
       {loading ? (
-        <div className="text-gray-700">Cargando compras...</div>
+        <div className="text-gray-700">Cargando gastos...</div>
       ) : error ? (
         <div className="text-red-600">{error}</div>
       ) : (
@@ -243,12 +243,12 @@ export default function ComprasPage() {
               </tr>
             </thead>
             <tbody>
-              {compras.length === 0 ? (
+              {gastos.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-4 text-center text-gray-700">No hay compras registradas.</td>
+                  <td colSpan={5} className="px-4 py-4 text-center text-gray-700">No hay gastos registrados.</td>
                 </tr>
               ) : (
-                compras.map(mov => (
+                gastos.map(mov => (
                   <tr key={mov._id} className="border-t">
                     <td className="px-4 py-2 text-gray-900">{mov.producto?.nombre || "-"}</td>
                     <td className="px-4 py-2 text-gray-900">{mov.tipo}</td>
@@ -257,7 +257,7 @@ export default function ComprasPage() {
                     <td className="px-4 py-2 flex gap-2">
                       <button
                       className="p-2 rounded hover:bg-blue-50"
-                      title="Editar compra"
+                      title="Editar gasto"
                       onClick={() => handleEditMovimiento(mov)}
                     >
                         <Edit size={16} className="text-blue-600" />
