@@ -2,13 +2,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Home, List, Briefcase, Box, CreditCard } from "lucide-react";
+import { LogOut, Home, Briefcase, Box, ShoppingCart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/productos", label: "Productos", icon: Box },
   { href: "/ventas", label: "Ventas", icon: Briefcase },
+  { href: "/compras", label: "Compras", icon: ShoppingCart },
 ];
 
 export default function Sidebar() {

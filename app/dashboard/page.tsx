@@ -34,7 +34,7 @@ interface Producto {
 interface Movimiento {
   _id: string;
   tipo: "Entrada" | "Salida";
-  producto: { _id: string; nombre: string };
+  producto: { _id: string; nombre: string; precioCompra: number };
   cantidad: number;
   nota: string;
   createdAt: string;
@@ -62,7 +62,10 @@ function DashboardContent() {
   const [cargando, setCargando] = useState(true);
 
   const valorTotal = productos.reduce((sum, producto) => sum + producto.cantidad * producto.precioVenta, 0);
-  const capitalDisponible = resumenTrabajos.totalGanancias;
+  const totalGastadoCompras = movimientos
+    .filter(m => m.tipo === "Entrada")
+    .reduce((sum, m) => sum + (m.producto?.precioCompra || 0) * m.cantidad, 0);
+  const capitalDisponible = resumenTrabajos.totalGanancias - totalGastadoCompras;
   const lowStockCount = productos.filter(producto => producto.cantidad <= producto.stockMinimo).length;
 
   let meses: string[] = [];
