@@ -26,7 +26,7 @@ const mapFallbackUrl = (url?: string) => {
   const cleanUrl = url.split('?')[0];
 
   if (cleanUrl.startsWith('/compras')) {
-    return url.replace('/compras', '/movimientos');
+    return url.replace('/compras', '/compras');
   }
   if (cleanUrl.startsWith('/ventas')) {
     return url.replace('/ventas', '/trabajos');

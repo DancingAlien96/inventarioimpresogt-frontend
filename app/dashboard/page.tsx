@@ -31,12 +31,10 @@ interface Producto {
   createdAt: string;
 }
 
-interface Movimiento {
+interface Compra {
   _id: string;
-  tipo: "Entrada" | "Salida";
-  producto: { _id: string; nombre: string; precioCompra: number };
-  cantidad: number;
-  nota: string;
+  descripcion: string;
+  totalGastado: number;
   createdAt: string;
 }
 
@@ -51,7 +49,7 @@ export default function DashboardPage() {
 function DashboardContent() {
   const { usuario } = useAuth();
   const [productos, setProductos] = useState<Producto[]>([]);
-  const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
+  const [compras, setCompras] = useState<Compra[]>([]);
   const [resumenTrabajos, setResumenTrabajos] = useState({
     totalTrabajos: 0,
     totalVentas: 0,
@@ -62,9 +60,7 @@ function DashboardContent() {
   const [cargando, setCargando] = useState(true);
 
   const valorTotal = productos.reduce((sum, producto) => sum + producto.cantidad * producto.precioVenta, 0);
-  const totalGastadoCompras = movimientos
-    .filter(m => m.tipo === "Entrada")
-    .reduce((sum, m) => sum + (m.producto?.precioCompra || 0) * m.cantidad, 0);
+  const totalGastadoCompras = compras.reduce((sum, c) => sum + (c.totalGastado || 0), 0);
   const capitalDisponible = resumenTrabajos.totalGanancias - totalGastadoCompras;
   const lowStockCount = productos.filter(producto => producto.cantidad <= producto.stockMinimo).length;
 
@@ -84,35 +80,15 @@ function DashboardContent() {
     productoStockValores = productos.map(producto => producto.cantidad);
   }
 
-  if (movimientos.length > 0 && productos.length > 0) {
-    const ventasPorProductoMap: Record<string, number> = {};
-    const ventasMesMap: Record<string, number> = {};
-
-    movimientos.forEach(mov => {
-      if (mov.tipo !== "Salida") return;
-      const producto = productos.find(p => p._id === mov.producto._id);
-      if (!producto) return;
-      const ingreso = producto.precioVenta * mov.cantidad;
-      ventasPorProductoMap[producto.nombre] = (ventasPorProductoMap[producto.nombre] || 0) + ingreso;
-      const mes = new Date(mov.createdAt).toLocaleString("default", { month: "short", year: "2-digit" });
-      ventasMesMap[mes] = (ventasMesMap[mes] || 0) + ingreso;
-    });
-
-    productosVenta = Object.keys(ventasPorProductoMap);
-    montosVenta = productosVenta.map(nombre => ventasPorProductoMap[nombre]);
-    meses = Object.keys(ventasMesMap);
-    ventasPorMes = meses.map(mes => ventasMesMap[mes]);
-  }
-
   async function cargarDatos() {
     try {
-      const [resProductos, resMovimientos, resResumen] = await Promise.all([
+      const [resProductos, resCompras, resResumen] = await Promise.all([
         api.get("/productos"),
         api.get("/compras"),
         api.get("/ventas/estadisticas/resumen"),
       ]);
       setProductos(resProductos.data);
-      setMovimientos(resMovimientos.data);
+      setCompras(resCompras.data);
       setResumenTrabajos(resResumen.data);
     } catch (error) {
       console.error("Error al cargar datos:", error);
