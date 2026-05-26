@@ -385,11 +385,11 @@ function VentasContent() {
                         <tbody>
                           {trabajo.materiales.map((mat, idx) => (
                             <tr key={idx} className="border-t border-[var(--border-subtle)] text-[var(--text-secondary)]">
-                              <td className="py-2 pr-3">{mat.nombreProducto}</td>
-                              <td className="pr-3">{mat.cantidad}</td>
-                              <td className="pr-3">Q{mat.costoUnitario.toFixed(2)}</td>
-                              <td className="pr-3">Q{mat.precioVentaUnitario.toFixed(2)}</td>
-                              <td>Q{mat.costoTotal.toFixed(2)}</td>
+                              <td className="py-2 pr-3">{mat.nombreProducto ?? '-'}</td>
+                              <td className="pr-3">{mat.cantidad ?? 0}</td>
+                              <td className="pr-3">Q{(mat.costoUnitario ?? 0).toFixed(2)}</td>
+                              <td className="pr-3">Q{(mat.precioVentaUnitario ?? 0).toFixed(2)}</td>
+                              <td>Q{(mat.costoTotal ?? 0).toFixed(2)}</td>
                             </tr>
                           ))}
                         </tbody>
