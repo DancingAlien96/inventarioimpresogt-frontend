@@ -74,10 +74,12 @@ function DashboardContent() {
   });
   const [cargando, setCargando] = useState(true);
 
-  const valorTotal = productos.reduce((sum, producto) => sum + producto.cantidad * producto.precioVenta, 0);
   const totalGastadoCompras = compras.reduce((sum, c) => sum + (c.totalGastado || 0), 0);
   const capitalDisponible = resumenTrabajos.totalVentas - totalGastadoCompras;
-  const lowStockCount = productos.filter(producto => producto.cantidad <= producto.stockMinimo).length;
+  const ventasPendientes = trabajos.filter(t => ['Cotizado', 'En Proceso'].includes(t.estado)).length;
+  const promedioPorVenta = resumenTrabajos.totalTrabajos > 0
+    ? resumenTrabajos.totalVentas / resumenTrabajos.totalTrabajos
+    : 0;
 
   const trabajosFinalizados = trabajos.filter(t => ['Completado', 'Entregado'].includes(t.estado));
 
@@ -177,11 +179,11 @@ function DashboardContent() {
       <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <StatCard label="Productos registrados" value={String(productos.length)} accent="cyan" />
-          <StatCard label="Valor del inventario" value={`Q${valorTotal.toFixed(2)}`} accent="cyan" />
+          <StatCard label="Ventas pendientes" value={String(ventasPendientes)} accent="magenta" />
           <StatCard
             label="Capital disponible"
             value={`Q${capitalDisponible.toFixed(2)}`}
-            accent={capitalDisponible < 0 ? "red" : "magenta"}
+            accent={capitalDisponible < 0 ? "red" : "cyan"}
           />
           <StatCard label="Margen promedio" value={`${resumenTrabajos.margenPromedio.toFixed(1)}%`} accent="cyan" />
         </div>
@@ -276,13 +278,13 @@ function DashboardContent() {
           </ChartCard>
         </div>
 
-        <div className="neon-card neon-card-magenta p-5 sm:p-6 flex items-center justify-between gap-4">
+        <div className="neon-card neon-card-cyan p-5 sm:p-6 flex items-center justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-xs uppercase tracking-[0.3em] text-[var(--text-muted)]">Alertas</p>
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">Productos con bajo stock</p>
-            <p className="mt-2 text-3xl font-bold neon-text-magenta">{lowStockCount}</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-[var(--text-muted)]">Indicador</p>
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">Promedio por venta</p>
+            <p className="mt-2 text-3xl font-bold neon-text-cyan">Q{promedioPorVenta.toFixed(2)}</p>
           </div>
-          <Package className="text-[var(--neon-magenta)] animate-float shrink-0" size={48} />
+          <DollarSign className="text-[var(--neon-cyan)] animate-float shrink-0" size={48} />
         </div>
       </main>
     </div>
