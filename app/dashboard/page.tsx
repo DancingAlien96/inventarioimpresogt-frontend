@@ -38,6 +38,20 @@ interface Compra {
   createdAt: string;
 }
 
+interface MaterialVenta {
+  nombreProducto: string;
+  cantidad: number;
+  precioVentaUnitario: number;
+}
+
+interface Trabajo {
+  _id: string;
+  precioVenta: number;
+  estado: string;
+  materiales: MaterialVenta[];
+  createdAt: string;
+}
+
 export default function DashboardPage() {
   return (
     <ProtectedRoute>
@@ -50,6 +64,7 @@ function DashboardContent() {
   const { usuario } = useAuth();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [compras, setCompras] = useState<Compra[]>([]);
+  const [trabajos, setTrabajos] = useState<Trabajo[]>([]);
   const [resumenTrabajos, setResumenTrabajos] = useState({
     totalTrabajos: 0,
     totalVentas: 0,
@@ -64,44 +79,59 @@ function DashboardContent() {
   const capitalDisponible = resumenTrabajos.totalGanancias - totalGastadoCompras;
   const lowStockCount = productos.filter(producto => producto.cantidad <= producto.stockMinimo).length;
 
-  let meses: string[] = [];
-  let ventasPorMes: number[] = [];
-  let productosVenta: string[] = [];
-  let montosVenta: number[] = [];
-  let productoMargenLabels: string[] = [];
-  let productoMargenValores: number[] = [];
-  let productoStockLabels: string[] = [];
-  let productoStockValores: number[] = [];
+  const trabajosFinalizados = trabajos.filter(t => ['Completado', 'Entregado'].includes(t.estado));
 
-  if (productos.length > 0) {
-    productoMargenLabels = productos.map(producto => producto.nombre);
-    productoMargenValores = productos.map(producto => producto.precioVenta - producto.precioCompra);
-    productoStockLabels = productos.map(producto => producto.nombre);
-    productoStockValores = productos.map(producto => producto.cantidad);
+  const ventasPorMesMap = new Map<string, number>();
+  for (const t of trabajosFinalizados) {
+    const fecha = new Date(t.createdAt);
+    if (Number.isNaN(fecha.getTime())) continue;
+    const clave = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+    ventasPorMesMap.set(clave, (ventasPorMesMap.get(clave) || 0) + t.precioVenta);
   }
+  const clavesMesesOrdenadas = Array.from(ventasPorMesMap.keys()).sort();
+  const nombresMeses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  const meses = clavesMesesOrdenadas.map(clave => {
+    const [anio, mes] = clave.split('-');
+    return `${nombresMeses[Number(mes) - 1]} ${anio}`;
+  });
+  const ventasPorMes = clavesMesesOrdenadas.map(clave => ventasPorMesMap.get(clave) || 0);
 
-  async function cargarDatos() {
-    try {
-      const [resProductos, resCompras, resResumen] = await Promise.all([
-        api.get("/productos"),
-        api.get("/compras"),
-        api.get("/ventas/estadisticas/resumen"),
-      ]);
-      setProductos(resProductos.data);
-      setCompras(resCompras.data);
-      setResumenTrabajos(resResumen.data);
-    } catch (error) {
-      console.error("Error al cargar datos:", error);
-    } finally {
-      setCargando(false);
+  const ventasPorProducto = new Map<string, number>();
+  for (const t of trabajosFinalizados) {
+    for (const m of t.materiales || []) {
+      const monto = (m.precioVentaUnitario || 0) * (m.cantidad || 0);
+      if (monto <= 0) continue;
+      ventasPorProducto.set(m.nombreProducto, (ventasPorProducto.get(m.nombreProducto) || 0) + monto);
     }
   }
+  const productosVenta = Array.from(ventasPorProducto.keys());
+  const montosVenta = productosVenta.map(nombre => ventasPorProducto.get(nombre) || 0);
+
+  const productoMargenLabels = productos.map(producto => producto.nombre);
+  const productoMargenValores = productos.map(producto => producto.precioVenta - producto.precioCompra);
+  const productoStockLabels = productos.map(producto => producto.nombre);
+  const productoStockValores = productos.map(producto => producto.cantidad);
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      cargarDatos();
-    }, 0);
-    return () => window.clearTimeout(timeout);
+    async function cargarDatos() {
+      try {
+        const [resProductos, resCompras, resResumen, resTrabajos] = await Promise.all([
+          api.get("/productos"),
+          api.get("/compras"),
+          api.get("/ventas/estadisticas/resumen"),
+          api.get("/ventas"),
+        ]);
+        setProductos(resProductos.data);
+        setCompras(resCompras.data);
+        setResumenTrabajos(resResumen.data);
+        setTrabajos(resTrabajos.data);
+      } catch (error) {
+        console.error("Error al cargar datos:", error);
+      } finally {
+        setCargando(false);
+      }
+    }
+    cargarDatos();
   }, []);
 
   if (cargando) {

@@ -1,20 +1,16 @@
 ﻿'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import api from '@/lib/api';
-import Link from 'next/link';
-import { 
-  Briefcase, 
-  DollarSign, 
-  TrendingUp, 
-  LogOut, 
-  Plus, 
-  Edit, 
+import {
+  Briefcase,
+  DollarSign,
+  TrendingUp,
+  Plus,
+  Edit,
   Trash2,
   X,
-  ArrowLeft,
   ChevronDown,
   ChevronUp,
   TrendingDown
@@ -62,7 +58,6 @@ export default function VentasPage() {
 }
 
 function VentasContent() {
-  const { logout } = useAuth();
   const [trabajos, setTrabajos] = useState<Trabajo[]>([]);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -275,28 +270,12 @@ function VentasContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-4">
-              <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-                <ArrowLeft size={24} />
-              </Link>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Ventas</h1>
-                <p className="text-xs sm:text-sm text-gray-600">Control de costos y ganancias</p>
-              </div>
-            </div>
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 text-red-600 hover:bg-red-50 rounded-md transition-colors text-sm sm:text-base"
-            >
-              <LogOut size={18} />
-              <span className="hidden sm:inline">Salir</span>
-            </button>
-          </div>
+          <p className="text-sm uppercase tracking-[0.24em] text-slate-500">ImpresoGT</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Ventas</h1>
+          <p className="text-xs sm:text-sm text-slate-600">Control de costos y ganancias</p>
         </div>
       </header>
 

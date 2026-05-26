@@ -21,17 +21,13 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Fallback temporal por si el deploy aún tiene /trabajos en vez de /ventas.
 const mapFallbackUrl = (url?: string) => {
   if (!url) return undefined;
   const cleanUrl = url.split('?')[0];
-
-  if (cleanUrl.startsWith('/compras')) {
-    return url.replace('/compras', '/compras');
-  }
   if (cleanUrl.startsWith('/ventas')) {
     return url.replace('/ventas', '/trabajos');
   }
-
   return undefined;
 };
 

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Edit, Trash2, X } from "lucide-react";
 import api from "@/lib/api";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 interface Producto {
   _id: string;
@@ -12,6 +13,14 @@ interface Producto {
 }
 
 export default function ProductosPage() {
+  return (
+    <ProtectedRoute>
+      <ProductosContent />
+    </ProtectedRoute>
+  );
+}
+
+function ProductosContent() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -61,8 +70,12 @@ export default function ProductosPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.nombre || !form.precioCompra || !form.precioVenta) {
-      setFormError("Todos los campos son obligatorios");
+    if (!form.nombre.trim()) {
+      setFormError("El nombre es obligatorio");
+      return;
+    }
+    if (Number(form.precioCompra) < 0 || Number(form.precioVenta) <= 0) {
+      setFormError("El precio de venta debe ser mayor a 0 y el costo no puede ser negativo");
       return;
     }
     setSaving(true);
@@ -81,18 +94,16 @@ export default function ProductosPage() {
       } else {
         await api.post("/productos", payload);
       }
-      setShowModal(false);
-      setSaving(false);
-      setLoading(true);
       const res = await api.get("/productos");
       setProductos(res.data);
-      setLoading(false);
+      setShowModal(false);
     } catch (err) {
       if (err instanceof Error) {
         setFormError(err.message);
       } else {
         setFormError("Error al guardar producto");
       }
+    } finally {
       setSaving(false);
     }
   };
@@ -101,10 +112,8 @@ export default function ProductosPage() {
     if (!confirm('¿Estás seguro de eliminar este producto?')) return;
     try {
       await api.delete(`/productos/${id}`);
-      setLoading(true);
       const res = await api.get('/productos');
       setProductos(res.data);
-      setLoading(false);
     } catch (err) {
       console.error('Error al eliminar producto:', err);
     }
@@ -141,23 +150,6 @@ export default function ProductosPage() {
             </button>
             <h2 className="text-lg font-bold mb-4 text-gray-900">{productoSeleccionado ? 'Editar producto' : 'Nuevo producto'}</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Animaciones para popup */}
-              <style jsx global>{`
-                @keyframes fadein {
-                  from { opacity: 0; }
-                  to { opacity: 1; }
-                }
-                .animate-fadein {
-                  animation: fadein 0.2s;
-                }
-                @keyframes popup {
-                  from { transform: scale(0.95); opacity: 0; }
-                  to { transform: scale(1); opacity: 1; }
-                }
-                .animate-popup {
-                  animation: popup 0.2s;
-                }
-              `}</style>
               <div>
                 <label className="block text-gray-700 font-medium mb-1">Nombre</label>
                 <input
@@ -226,7 +218,7 @@ export default function ProductosPage() {
             <tbody>
               {productos.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-4 text-center text-gray-700">No hay productos registrados.</td>
+                  <td colSpan={4} className="px-4 py-4 text-center text-gray-700">No hay productos registrados.</td>
                 </tr>
               ) : (
                 productos.map(producto => (

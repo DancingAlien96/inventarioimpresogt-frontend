@@ -45,8 +45,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUsuario(usuario);
       
       router.push('/dashboard');
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Error al iniciar sesión');
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      throw new Error(err.response?.data?.message || 'Error al iniciar sesión');
     }
   };
 
