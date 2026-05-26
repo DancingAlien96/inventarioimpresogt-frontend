@@ -104,16 +104,18 @@ function ComprasContent() {
     <div className="min-h-screen">
       <header className="border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/60 backdrop-blur-sm relative overflow-hidden">
         <div className="absolute inset-0 cyber-grid opacity-30 pointer-events-none" />
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex items-center justify-between relative">
-          <div>
+        <div className="max-w-7xl mx-auto px-4 py-5 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-3 relative">
+          <div className="min-w-0">
             <p className="text-xs uppercase tracking-[0.3em] text-[var(--text-muted)]">ImpresoGT // Compras</p>
             <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">Compras</h1>
           </div>
           <button
             onClick={abrirNuevo}
-            className="neon-btn-cyan flex items-center gap-2 px-4 py-2 text-sm"
+            className="neon-btn-cyan flex items-center gap-2 px-3 sm:px-4 py-2 text-sm whitespace-nowrap"
           >
-            <Plus size={16} /> Nueva compra
+            <Plus size={16} />
+            <span className="hidden sm:inline">Nueva compra</span>
+            <span className="sm:hidden">Nueva</span>
           </button>
         </div>
       </header>

@@ -202,10 +202,10 @@ function DashboardContent() {
               }}
               options={{
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: { y: chartScaleY, x: chartScaleX },
               }}
-              height={260}
             />
           </ChartCard>
 
@@ -222,9 +222,9 @@ function DashboardContent() {
               }}
               options={{
                 responsive: true,
-                plugins: { legend: { position: 'bottom' as const, labels: { color: tickColor } } },
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' as const, labels: { color: tickColor, boxWidth: 12, padding: 10 } } },
               }}
-              height={260}
             />
           </ChartCard>
 
@@ -243,10 +243,10 @@ function DashboardContent() {
               }}
               options={{
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: { y: chartScaleY, x: chartScaleX },
               }}
-              height={260}
             />
           </ChartCard>
 
@@ -265,24 +265,24 @@ function DashboardContent() {
               }}
               options={{
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
                   y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: tickColor } },
                   x: chartScaleX,
                 },
               }}
-              height={260}
             />
           </ChartCard>
         </div>
 
-        <div className="neon-card neon-card-magenta p-6 flex items-center justify-between">
-          <div>
+        <div className="neon-card neon-card-magenta p-5 sm:p-6 flex items-center justify-between gap-4">
+          <div className="min-w-0">
             <p className="text-xs uppercase tracking-[0.3em] text-[var(--text-muted)]">Alertas</p>
             <p className="mt-1 text-sm text-[var(--text-secondary)]">Productos con bajo stock</p>
             <p className="mt-2 text-3xl font-bold neon-text-magenta">{lowStockCount}</p>
           </div>
-          <Package className="text-[var(--neon-magenta)] animate-float" size={56} />
+          <Package className="text-[var(--neon-magenta)] animate-float shrink-0" size={48} />
         </div>
       </main>
     </div>
@@ -302,15 +302,15 @@ function StatCard({ label, value, accent }: { label: string; value: string; acce
 
 function ChartCard({ title, subtitle, icon, children }: { title: string; subtitle: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="neon-card neon-card-cyan p-5">
-      <div className="flex items-center justify-between mb-4">
-        <div>
+    <div className="neon-card neon-card-cyan p-4 sm:p-5">
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <div className="min-w-0">
           <p className="text-xs uppercase tracking-[0.3em] text-[var(--text-muted)]">{subtitle}</p>
-          <h2 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h2>
+          <h2 className="text-base sm:text-lg font-semibold text-[var(--text-primary)] truncate">{title}</h2>
         </div>
-        {icon}
+        <div className="shrink-0">{icon}</div>
       </div>
-      {children}
+      <div className="h-56 sm:h-64">{children}</div>
     </div>
   );
 }

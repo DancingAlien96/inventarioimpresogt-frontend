@@ -310,89 +310,91 @@ function VentasContent() {
 
           <div className="divide-y divide-[var(--border-subtle)]">
             {trabajos.map(trabajo => (
-              <div key={trabajo._id} className="p-5 hover:bg-[var(--bg-surface)]/40 transition">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex-1">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                      <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">{trabajo.nombre}</h3>
+              <div key={trabajo._id} className="p-4 sm:p-5 hover:bg-[var(--bg-surface)]/40 transition">
+                <div className="flex flex-col gap-3 mb-2 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] break-words">{trabajo.nombre}</h3>
                       <span className={`px-2 py-1 rounded-md text-xs font-semibold border ${estadoBadge(trabajo.estado)}`}>
                         {trabajo.estado}
                       </span>
                     </div>
                     {trabajo.cliente && (
-                      <p className="text-sm text-[var(--text-secondary)]">Cliente: {trabajo.cliente}</p>
+                      <p className="text-sm text-[var(--text-secondary)] mt-1">Cliente: {trabajo.cliente}</p>
                     )}
                     {trabajo.descripcion && (
-                      <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-1">{trabajo.descripcion}</p>
+                      <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-1 break-words">{trabajo.descripcion}</p>
                     )}
                   </div>
 
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mt-3 sm:mt-0">
-                    <div className="text-right">
+                  <div className="grid grid-cols-3 gap-3 sm:gap-4 lg:flex lg:items-center">
+                    <div className="text-left lg:text-right">
                       <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Costo</p>
-                      <p className="font-semibold neon-text-red">Q{trabajo.costoProduccion.toFixed(2)}</p>
+                      <p className="font-semibold neon-text-red text-sm sm:text-base">Q{trabajo.costoProduccion.toFixed(2)}</p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-left lg:text-right">
                       <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Venta</p>
-                      <p className="font-semibold neon-text-cyan">Q{trabajo.precioVenta.toFixed(2)}</p>
+                      <p className="font-semibold neon-text-cyan text-sm sm:text-base">Q{trabajo.precioVenta.toFixed(2)}</p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-left lg:text-right">
                       <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Ganancia</p>
-                      <p className="font-bold neon-text-green">Q{trabajo.ganancia.toFixed(2)}</p>
+                      <p className="font-bold neon-text-green text-sm sm:text-base">Q{trabajo.ganancia.toFixed(2)}</p>
                       <p className="text-xs text-[var(--neon-green)] opacity-70">({trabajo.porcentajeGanancia.toFixed(1)}%)</p>
                     </div>
+                  </div>
 
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => toggleExpandir(trabajo._id)}
-                        className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--neon-cyan)] hover:bg-[var(--bg-surface)] transition"
-                        title="Ver detalles"
-                      >
-                        {expandido === trabajo._id ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                      </button>
-                      <button
-                        onClick={() => editarTrabajo(trabajo)}
-                        className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--neon-yellow)] hover:bg-[var(--bg-surface)] transition"
-                        title="Editar"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={() => eliminarTrabajo(trabajo._id)}
-                        className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--neon-red)] hover:bg-[var(--bg-surface)] transition"
-                        title="Eliminar"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+                  <div className="flex gap-1 justify-end lg:ml-2">
+                    <button
+                      onClick={() => toggleExpandir(trabajo._id)}
+                      className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--neon-cyan)] hover:bg-[var(--bg-surface)] transition"
+                      title="Ver detalles"
+                    >
+                      {expandido === trabajo._id ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                    </button>
+                    <button
+                      onClick={() => editarTrabajo(trabajo)}
+                      className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--neon-yellow)] hover:bg-[var(--bg-surface)] transition"
+                      title="Editar"
+                    >
+                      <Edit size={16} />
+                    </button>
+                    <button
+                      onClick={() => eliminarTrabajo(trabajo._id)}
+                      className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--neon-red)] hover:bg-[var(--bg-surface)] transition"
+                      title="Eliminar"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
                 </div>
 
                 {expandido === trabajo._id && (
                   <div className="mt-4 p-4 rounded-lg bg-[var(--bg-base)]/60 border border-[var(--border-subtle)]">
                     <h4 className="font-semibold mb-2 text-[var(--text-primary)]">Ventas Declaradas:</h4>
-                    <table className="w-full text-sm mb-4">
-                      <thead>
-                        <tr className="text-left text-[var(--text-muted)] text-xs uppercase tracking-wider">
-                          <th className="pb-2">Producto</th>
-                          <th className="pb-2">Cantidad</th>
-                          <th className="pb-2">Costo Compra</th>
-                          <th className="pb-2">Precio Venta</th>
-                          <th className="pb-2">Costo Total</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {trabajo.materiales.map((mat, idx) => (
-                          <tr key={idx} className="border-t border-[var(--border-subtle)] text-[var(--text-secondary)]">
-                            <td className="py-2">{mat.nombreProducto}</td>
-                            <td>{mat.cantidad}</td>
-                            <td>Q{mat.costoUnitario.toFixed(2)}</td>
-                            <td>Q{mat.precioVentaUnitario.toFixed(2)}</td>
-                            <td>Q{mat.costoTotal.toFixed(2)}</td>
+                    <div className="overflow-x-auto -mx-2 px-2">
+                      <table className="w-full text-sm mb-4 min-w-[480px]">
+                        <thead>
+                          <tr className="text-left text-[var(--text-muted)] text-xs uppercase tracking-wider">
+                            <th className="pb-2 pr-3">Producto</th>
+                            <th className="pb-2 pr-3">Cant.</th>
+                            <th className="pb-2 pr-3">C. Compra</th>
+                            <th className="pb-2 pr-3">P. Venta</th>
+                            <th className="pb-2">C. Total</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {trabajo.materiales.map((mat, idx) => (
+                            <tr key={idx} className="border-t border-[var(--border-subtle)] text-[var(--text-secondary)]">
+                              <td className="py-2 pr-3">{mat.nombreProducto}</td>
+                              <td className="pr-3">{mat.cantidad}</td>
+                              <td className="pr-3">Q{mat.costoUnitario.toFixed(2)}</td>
+                              <td className="pr-3">Q{mat.precioVentaUnitario.toFixed(2)}</td>
+                              <td>Q{mat.costoTotal.toFixed(2)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
 
                     {trabajo.costosAdicionales > 0 && (
                       <div className="mb-2">
@@ -479,15 +481,16 @@ function VentasContent() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-12 gap-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-2 px-2">
+                <div className="hidden sm:grid sm:grid-cols-12 gap-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-2 px-2">
                   <div className="col-span-7">Producto</div>
                   <div className="col-span-2">Cant.</div>
                   <div className="col-span-2">Venta total</div>
                   <div className="col-span-1"></div>
                 </div>
                 {formData.materiales.map((material, index) => (
-                  <div key={index} className="grid grid-cols-12 gap-2 mb-2 p-2 bg-[var(--bg-base)]/60 rounded-lg border border-[var(--border-subtle)]">
-                    <div className="col-span-7">
+                  <div key={index} className="flex flex-col gap-2 mb-2 p-3 bg-[var(--bg-base)]/60 rounded-lg border border-[var(--border-subtle)] sm:grid sm:grid-cols-12 sm:p-2">
+                    <div className="sm:col-span-7">
+                      <label className="block text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1 sm:hidden">Producto</label>
                       <select
                         value={material.producto}
                         onChange={(e) => actualizarMaterial(index, 'producto', e.target.value)}
@@ -499,34 +502,39 @@ function VentasContent() {
                         ))}
                       </select>
                     </div>
-                    <div className="col-span-2">
-                      <input
-                        type="number"
-                        min={0}
-                        value={material.cantidad === 0 ? '' : material.cantidad}
-                        onChange={(e) => actualizarMaterial(index, 'cantidad', e.target.value)}
-                        onFocus={(e) => {
-                          if (e.currentTarget.value === '0') {
-                            actualizarMaterial(index, 'cantidad', '');
-                          }
-                        }}
-                        className="neon-input text-sm py-1.5"
-                        placeholder="0"
-                      />
+                    <div className="grid grid-cols-2 gap-2 sm:col-span-4 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1 sm:hidden">Cantidad</label>
+                        <input
+                          type="number"
+                          min={0}
+                          value={material.cantidad === 0 ? '' : material.cantidad}
+                          onChange={(e) => actualizarMaterial(index, 'cantidad', e.target.value)}
+                          onFocus={(e) => {
+                            if (e.currentTarget.value === '0') {
+                              actualizarMaterial(index, 'cantidad', '');
+                            }
+                          }}
+                          className="neon-input text-sm py-1.5"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1 sm:hidden">Venta total</label>
+                        <input
+                          type="text"
+                          value={`Q${(material.precioVentaUnitario * material.cantidad).toFixed(2)}`}
+                          disabled
+                          className="neon-input text-sm py-1.5 opacity-70"
+                        />
+                      </div>
                     </div>
-                    <div className="col-span-2">
-                      <input
-                        type="text"
-                        value={`Q${(material.precioVentaUnitario * material.cantidad).toFixed(2)}`}
-                        disabled
-                        className="neon-input text-sm py-1.5 opacity-70"
-                      />
-                    </div>
-                    <div className="col-span-1 flex items-center justify-center">
+                    <div className="flex justify-end sm:col-span-1 sm:items-center sm:justify-center">
                       <button
                         type="button"
                         onClick={() => eliminarMaterial(index)}
-                        className="text-[var(--text-muted)] hover:text-[var(--neon-red)] transition"
+                        className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--neon-red)] hover:bg-[var(--bg-surface)] transition"
+                        aria-label="Quitar material"
                       >
                         <X size={16} />
                       </button>
