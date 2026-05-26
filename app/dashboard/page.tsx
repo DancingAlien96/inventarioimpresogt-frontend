@@ -76,7 +76,7 @@ function DashboardContent() {
 
   const valorTotal = productos.reduce((sum, producto) => sum + producto.cantidad * producto.precioVenta, 0);
   const totalGastadoCompras = compras.reduce((sum, c) => sum + (c.totalGastado || 0), 0);
-  const capitalDisponible = resumenTrabajos.totalGanancias - totalGastadoCompras;
+  const capitalDisponible = resumenTrabajos.totalVentas - totalGastadoCompras;
   const lowStockCount = productos.filter(producto => producto.cantidad <= producto.stockMinimo).length;
 
   const trabajosFinalizados = trabajos.filter(t => ['Completado', 'Entregado'].includes(t.estado));
