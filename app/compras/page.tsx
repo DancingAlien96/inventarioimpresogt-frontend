@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import api from "@/lib/api";
-import { Plus, Edit, Trash2, X } from "lucide-react";
+import { Plus, Edit, Trash2, X, ShoppingCart, TrendingDown } from "lucide-react";
 
 interface Compra {
   _id: string;
@@ -62,8 +62,13 @@ function ComprasContent() {
 
   async function handleEliminar(id: string) {
     if (!confirm("¿Eliminar esta compra?")) return;
-    await api.delete(`/compras/${id}`);
-    cargarDatos();
+    try {
+      await api.delete(`/compras/${id}`);
+      const res = await api.get("/compras");
+      setCompras(res.data);
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -84,8 +89,9 @@ function ComprasContent() {
       } else {
         await api.post("/compras", payload);
       }
+      const res = await api.get("/compras");
+      setCompras(res.data);
       setShowModal(false);
-      cargarDatos();
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
       setFormError(e.response?.data?.message || "Error al guardar");
@@ -95,79 +101,91 @@ function ComprasContent() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white shadow-sm border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex items-center justify-between">
+    <div className="min-h-screen">
+      <header className="border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/60 backdrop-blur-sm relative overflow-hidden">
+        <div className="absolute inset-0 cyber-grid opacity-30 pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex items-center justify-between relative">
           <div>
-            <p className="text-sm uppercase tracking-[0.24em] text-slate-500">ImpresoGT</p>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Compras</h1>
+            <p className="text-xs uppercase tracking-[0.3em] text-[var(--text-muted)]">ImpresoGT // Compras</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">Compras</h1>
           </div>
           <button
             onClick={abrirNuevo}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="neon-btn-cyan flex items-center gap-2 px-4 py-2 text-sm"
           >
-            <Plus size={18} /> Nueva compra
+            <Plus size={16} /> Nueva compra
           </button>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-white p-6 rounded-3xl shadow">
-            <p className="text-sm text-gray-500">Total de compras registradas</p>
-            <p className="text-3xl font-bold text-slate-900">{compras.length}</p>
+          <div className="neon-card neon-card-cyan p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--text-muted)]">Total de compras registradas</p>
+                <p className="mt-2 text-3xl font-bold neon-text-cyan">{compras.length}</p>
+              </div>
+              <ShoppingCart size={36} className="text-[var(--neon-cyan)] animate-float" />
+            </div>
           </div>
-          <div className="bg-white p-6 rounded-3xl shadow">
-            <p className="text-sm text-gray-500">Total gastado</p>
-            <p className="text-3xl font-bold text-red-600">Q{totalAcumulado.toFixed(2)}</p>
+          <div className="neon-card neon-card-magenta p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--text-muted)]">Total gastado</p>
+                <p className="mt-2 text-3xl font-bold neon-text-magenta">Q{totalAcumulado.toFixed(2)}</p>
+              </div>
+              <TrendingDown size={36} className="text-[var(--neon-magenta)]" />
+            </div>
           </div>
         </div>
 
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="neon-spinner h-14 w-14"></div>
           </div>
         ) : (
-          <div className="bg-white rounded-3xl shadow overflow-hidden">
+          <div className="neon-card neon-card-cyan overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full">
                 <thead>
-                  <tr className="bg-gray-100">
-                    <th className="px-4 py-3 text-left text-gray-900 font-bold">Descripción</th>
-                    <th className="px-4 py-3 text-left text-gray-900 font-bold">Total gastado</th>
-                    <th className="px-4 py-3 text-left text-gray-900 font-bold">Fecha</th>
-                    <th className="px-4 py-3 text-left text-gray-900 font-bold">Acciones</th>
+                  <tr className="bg-[var(--bg-surface)]/70 border-b border-[var(--border-subtle)]">
+                    <th className="px-4 py-3 text-left text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Descripción</th>
+                    <th className="px-4 py-3 text-left text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Total gastado</th>
+                    <th className="px-4 py-3 text-left text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Fecha</th>
+                    <th className="px-4 py-3 text-left text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {compras.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                      <td colSpan={4} className="px-4 py-12 text-center text-[var(--text-muted)]">
+                        <ShoppingCart size={36} className="mx-auto mb-3 text-[var(--neon-cyan)] opacity-50" />
                         No hay compras registradas aún.
                       </td>
                     </tr>
                   ) : (
                     compras.map((c) => (
-                      <tr key={c._id} className="border-t">
-                        <td className="px-4 py-3 text-gray-900">{c.descripcion}</td>
-                        <td className="px-4 py-3 font-semibold text-red-600">Q{c.totalGastado.toFixed(2)}</td>
-                        <td className="px-4 py-3 text-gray-900">
+                      <tr key={c._id} className="border-t border-[var(--border-subtle)] hover:bg-[var(--bg-surface)]/40 transition">
+                        <td className="px-4 py-3 text-[var(--text-primary)]">{c.descripcion}</td>
+                        <td className="px-4 py-3 font-semibold neon-text-magenta">Q{c.totalGastado.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-[var(--text-secondary)]">
                           {new Date(c.createdAt).toLocaleDateString()}
                         </td>
-                        <td className="px-4 py-3 flex gap-2">
+                        <td className="px-4 py-3 flex gap-1">
                           <button
                             onClick={() => abrirEditar(c)}
-                            className="p-2 rounded hover:bg-blue-50"
+                            className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--neon-cyan)] hover:bg-[var(--bg-surface)] transition"
                             title="Editar"
                           >
-                            <Edit size={16} className="text-blue-600" />
+                            <Edit size={16} />
                           </button>
                           <button
                             onClick={() => handleEliminar(c._id)}
-                            className="p-2 rounded hover:bg-red-50"
+                            className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--neon-red)] hover:bg-[var(--bg-surface)] transition"
                             title="Eliminar"
                           >
-                            <Trash2 size={16} className="text-red-600" />
+                            <Trash2 size={16} />
                           </button>
                         </td>
                       </tr>
@@ -182,52 +200,52 @@ function ComprasContent() {
 
       {showModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fadein"
           onClick={() => setShowModal(false)}
         >
           <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative"
+            className="neon-card neon-card-cyan w-full max-w-md p-6 relative animate-popup mx-4"
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-900"
+              className="absolute top-3 right-3 text-[var(--text-muted)] hover:text-[var(--neon-red)] transition"
               onClick={() => setShowModal(false)}
             >
               <X size={20} />
             </button>
-            <h2 className="text-lg font-bold mb-4 text-gray-900">
+            <h2 className="text-lg font-bold neon-text-cyan mb-4">
               {selectedCompra ? "Editar compra" : "Nueva compra"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-1">Descripción</label>
+                <label className="block text-xs uppercase tracking-[0.2em] font-semibold text-[var(--text-muted)] mb-2">Descripción</label>
                 <input
                   type="text"
                   value={form.descripcion}
                   onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-                  className="w-full border rounded px-3 py-2 text-black"
+                  className="neon-input"
                   placeholder="Ej: Compra de papel bond"
                   required
                 />
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-1">Total gastado (Q)</label>
+                <label className="block text-xs uppercase tracking-[0.2em] font-semibold text-[var(--text-muted)] mb-2">Total gastado (Q)</label>
                 <input
                   type="number"
                   min={0}
                   step={0.01}
                   value={form.totalGastado}
                   onChange={(e) => setForm({ ...form, totalGastado: e.target.value })}
-                  className="w-full border rounded px-3 py-2 text-black"
+                  className="neon-input"
                   placeholder="0.00"
                   required
                 />
               </div>
-              {formError && <p className="text-red-600 text-sm">{formError}</p>}
+              {formError && <p className="text-sm neon-text-red">{formError}</p>}
               <button
                 type="submit"
                 disabled={saving}
-                className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 font-bold transition-colors"
+                className="neon-btn-cyan w-full py-2.5"
               >
                 {saving ? "Guardando..." : "Guardar"}
               </button>

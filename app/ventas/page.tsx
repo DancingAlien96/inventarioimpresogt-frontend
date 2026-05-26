@@ -264,151 +264,116 @@ function VentasContent() {
   if (cargando) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="neon-spinner h-14 w-14"></div>
       </div>
     );
   }
 
+  const estadoBadge = (estado: string) => {
+    if (estado === 'Completado') return 'border-[rgba(57,255,136,0.4)] bg-[rgba(57,255,136,0.1)] text-[var(--neon-green)]';
+    if (estado === 'En Proceso') return 'border-[rgba(0,240,255,0.4)] bg-[rgba(0,240,255,0.1)] text-[var(--neon-cyan)]';
+    if (estado === 'Entregado') return 'border-[rgba(255,0,170,0.4)] bg-[rgba(255,0,170,0.1)] text-[var(--neon-magenta)]';
+    return 'border-[rgba(255,214,10,0.4)] bg-[rgba(255,214,10,0.1)] text-[var(--neon-yellow)]';
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white shadow-sm border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-          <p className="text-sm uppercase tracking-[0.24em] text-slate-500">ImpresoGT</p>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Ventas</h1>
-          <p className="text-xs sm:text-sm text-slate-600">Control de costos y ganancias</p>
+    <div className="min-h-screen">
+      <header className="border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/60 backdrop-blur-sm relative overflow-hidden">
+        <div className="absolute inset-0 cyber-grid opacity-30 pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 relative">
+          <p className="text-xs uppercase tracking-[0.3em] text-[var(--text-muted)]">ImpresoGT // Ventas</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">Ventas</h1>
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Control de costos y ganancias</p>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Estadísticas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-gray-600">Total Ventas</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">Q{totalVentas.toFixed(2)}</p>
-              </div>
-              <DollarSign className="text-green-600" size={32} />
-            </div>
-          </div>
-
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-gray-600">Total Costos</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">Q{totalCostos.toFixed(2)}</p>
-              </div>
-              <TrendingDown className="text-red-600" size={32} />
-            </div>
-          </div>
-
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-gray-600">Ganancia Total</p>
-                <p className="text-xl sm:text-2xl font-bold text-green-600">Q{totalGanancias.toFixed(2)}</p>
-              </div>
-              <TrendingUp className="text-green-600" size={32} />
-            </div>
-          </div>
-
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm text-gray-600">Margen Promedio</p>
-                <p className="text-xl sm:text-2xl font-bold text-blue-600">{margenPromedio.toFixed(1)}%</p>
-              </div>
-              <Briefcase className="text-blue-600" size={32} />
-            </div>
-          </div>
+      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <StatCard label="Total Ventas" value={`Q${totalVentas.toFixed(2)}`} icon={<DollarSign size={28} className="text-[var(--neon-cyan)]" />} accent="cyan" />
+          <StatCard label="Total Costos" value={`Q${totalCostos.toFixed(2)}`} icon={<TrendingDown size={28} className="text-[var(--neon-red)]" />} accent="red" />
+          <StatCard label="Ganancia Total" value={`Q${totalGanancias.toFixed(2)}`} icon={<TrendingUp size={28} className="text-[var(--neon-green)]" />} accent="green" />
+          <StatCard label="Margen Promedio" value={`${margenPromedio.toFixed(1)}%`} icon={<Briefcase size={28} className="text-[var(--neon-magenta)]" />} accent="magenta" />
         </div>
 
-        {/* Lista de Ventas */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-4 sm:p-6 border-b flex justify-between items-center">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900">Todas las Ventas</h2>
+        <div className="neon-card neon-card-cyan">
+          <div className="p-5 border-b border-[var(--border-subtle)] flex justify-between items-center">
+            <h2 className="text-lg font-bold text-[var(--text-primary)]">Todas las Ventas</h2>
             <button
               onClick={abrirModalNuevo}
-              className="flex items-center gap-1 sm:gap-2 bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm sm:text-base"
+              className="neon-btn-cyan flex items-center gap-2 px-4 py-2 text-sm"
             >
-              <Plus size={18} />
+              <Plus size={16} />
               <span className="hidden sm:inline">Nueva Venta</span>
               <span className="sm:hidden">Nueva</span>
             </button>
           </div>
 
-          <div className="divide-y">
+          <div className="divide-y divide-[var(--border-subtle)]">
             {trabajos.map(trabajo => (
-              <div key={trabajo._id} className="p-4 sm:p-6">
+              <div key={trabajo._id} className="p-5 hover:bg-[var(--bg-surface)]/40 transition">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex-1">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                      <h3 className="text-base sm:text-lg font-bold text-gray-900">{trabajo.nombre}</h3>
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        trabajo.estado === 'Completado' ? 'bg-green-100 text-green-800' :
-                        trabajo.estado === 'En Proceso' ? 'bg-blue-100 text-blue-800' :
-                        trabajo.estado === 'Entregado' ? 'bg-purple-100 text-purple-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
+                      <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">{trabajo.nombre}</h3>
+                      <span className={`px-2 py-1 rounded-md text-xs font-semibold border ${estadoBadge(trabajo.estado)}`}>
                         {trabajo.estado}
                       </span>
                     </div>
                     {trabajo.cliente && (
-                      <p className="text-sm text-gray-800">Cliente: {trabajo.cliente}</p>
+                      <p className="text-sm text-[var(--text-secondary)]">Cliente: {trabajo.cliente}</p>
                     )}
                     {trabajo.descripcion && (
-                      <p className="text-xs sm:text-sm text-gray-900 mt-1">{trabajo.descripcion}</p>
+                      <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-1">{trabajo.descripcion}</p>
                     )}
                   </div>
-                  
+
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mt-3 sm:mt-0">
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">Costo</p>
-                      <p className="font-semibold text-red-600">Q{trabajo.costoProduccion.toFixed(2)}</p>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Costo</p>
+                      <p className="font-semibold neon-text-red">Q{trabajo.costoProduccion.toFixed(2)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">Venta</p>
-                      <p className="font-semibold text-green-600">Q{trabajo.precioVenta.toFixed(2)}</p>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Venta</p>
+                      <p className="font-semibold neon-text-cyan">Q{trabajo.precioVenta.toFixed(2)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">Ganancia</p>
-                      <p className="font-bold text-blue-600">Q{trabajo.ganancia.toFixed(2)}</p>
-                      <p className="text-xs text-blue-600">({trabajo.porcentajeGanancia.toFixed(1)}%)</p>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)]">Ganancia</p>
+                      <p className="font-bold neon-text-green">Q{trabajo.ganancia.toFixed(2)}</p>
+                      <p className="text-xs text-[var(--neon-green)] opacity-70">({trabajo.porcentajeGanancia.toFixed(1)}%)</p>
                     </div>
-                    
-                    <div className="flex gap-2">
+
+                    <div className="flex gap-1">
                       <button
                         onClick={() => toggleExpandir(trabajo._id)}
-                        className="text-gray-600 hover:text-gray-800"
+                        className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--neon-cyan)] hover:bg-[var(--bg-surface)] transition"
                         title="Ver detalles"
                       >
-                        {expandido === trabajo._id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                        {expandido === trabajo._id ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                       </button>
                       <button
                         onClick={() => editarTrabajo(trabajo)}
-                        className="text-yellow-600 hover:text-yellow-800"
+                        className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--neon-yellow)] hover:bg-[var(--bg-surface)] transition"
                         title="Editar"
                       >
-                        <Edit size={18} />
+                        <Edit size={16} />
                       </button>
                       <button
                         onClick={() => eliminarTrabajo(trabajo._id)}
-                        className="text-red-600 hover:text-red-800"
+                        className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--neon-red)] hover:bg-[var(--bg-surface)] transition"
                         title="Eliminar"
                       >
-                        <Trash2 size={18} />
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Detalles expandidos */}
                 {expandido === trabajo._id && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-semibold mb-2">Ventas Declaradas:</h4>
+                  <div className="mt-4 p-4 rounded-lg bg-[var(--bg-base)]/60 border border-[var(--border-subtle)]">
+                    <h4 className="font-semibold mb-2 text-[var(--text-primary)]">Ventas Declaradas:</h4>
                     <table className="w-full text-sm mb-4">
                       <thead>
-                        <tr className="text-left text-gray-600">
+                        <tr className="text-left text-[var(--text-muted)] text-xs uppercase tracking-wider">
                           <th className="pb-2">Producto</th>
                           <th className="pb-2">Cantidad</th>
                           <th className="pb-2">Costo Compra</th>
@@ -418,7 +383,7 @@ function VentasContent() {
                       </thead>
                       <tbody>
                         {trabajo.materiales.map((mat, idx) => (
-                          <tr key={idx} className="border-t">
+                          <tr key={idx} className="border-t border-[var(--border-subtle)] text-[var(--text-secondary)]">
                             <td className="py-2">{mat.nombreProducto}</td>
                             <td>{mat.cantidad}</td>
                             <td>Q{mat.costoUnitario.toFixed(2)}</td>
@@ -428,24 +393,24 @@ function VentasContent() {
                         ))}
                       </tbody>
                     </table>
-                    
+
                     {trabajo.costosAdicionales > 0 && (
                       <div className="mb-2">
-                        <p className="text-sm"><span className="font-semibold">Costos Adicionales:</span> Q{trabajo.costosAdicionales.toFixed(2)}</p>
-                        {trabajo.notaCostos && <p className="text-sm text-gray-600">{trabajo.notaCostos}</p>}
+                        <p className="text-sm text-[var(--text-secondary)]"><span className="font-semibold text-[var(--text-primary)]">Costos Adicionales:</span> Q{trabajo.costosAdicionales.toFixed(2)}</p>
+                        {trabajo.notaCostos && <p className="text-sm text-[var(--text-muted)]">{trabajo.notaCostos}</p>}
                       </div>
                     )}
-                    
-                    <p className="text-xs text-gray-500">Creado: {new Date(trabajo.createdAt).toLocaleDateString()}</p>
+
+                    <p className="text-xs text-[var(--text-muted)]">Creado: {new Date(trabajo.createdAt).toLocaleDateString()}</p>
                   </div>
                 )}
               </div>
             ))}
 
             {trabajos.length === 0 && (
-              <div className="p-12 text-center text-gray-500">
-                <Briefcase size={48} className="mx-auto mb-4 opacity-50" />
-                <p>No hay ventas registradas aún</p>
+              <div className="p-12 text-center text-[var(--text-muted)]">
+                <Briefcase size={48} className="mx-auto mb-4 text-[var(--neon-cyan)] opacity-50" />
+                <p className="text-[var(--text-secondary)]">No hay ventas registradas aún</p>
                 <p className="text-sm">Crea tu primer registro para empezar a controlar ventas y ganancias</p>
               </div>
             )}
@@ -453,79 +418,80 @@ function VentasContent() {
         </div>
       </main>
 
-      {/* Modal Trabajo */}
       {mostrarModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white rounded-lg max-w-3xl w-full p-4 sm:p-6 my-8 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto animate-fadein">
+          <div className="neon-card neon-card-cyan max-w-3xl w-full p-5 sm:p-6 my-8 max-h-[90vh] overflow-y-auto animate-popup">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">
+              <h3 className="text-xl font-bold neon-text-cyan">
                 {trabajoSeleccionado ? 'Editar Venta' : 'Nueva Venta'}
               </h3>
-              <button onClick={() => setMostrarModal(false)} className="text-black hover:text-gray-700">
-                <X size={24} />
+              <button onClick={() => setMostrarModal(false)} className="text-[var(--text-muted)] hover:text-[var(--neon-red)] transition">
+                <X size={22} />
               </button>
             </div>
 
             <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-black mb-1">Nombre del Trabajo *</label>
+                  <label className="block text-xs uppercase tracking-[0.2em] font-semibold text-[var(--text-muted)] mb-2">Nombre del Trabajo *</label>
                   <input
                     type="text"
                     value={formData.nombre}
                     onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-md text-black placeholder-black"
+                    className="neon-input"
                     placeholder="Ej: 1000 volantes full color"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-black mb-1">Cliente</label>
+                  <label className="block text-xs uppercase tracking-[0.2em] font-semibold text-[var(--text-muted)] mb-2">Cliente</label>
                   <input
                     type="text"
                     value={formData.cliente}
                     onChange={(e) => setFormData({ ...formData, cliente: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-md text-black placeholder-black"
+                    className="neon-input"
                     placeholder="Nombre del cliente"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-1">Descripción</label>
+                <label className="block text-xs uppercase tracking-[0.2em] font-semibold text-[var(--text-muted)] mb-2">Descripción</label>
                 <textarea
                   value={formData.descripcion}
                   onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md text-black placeholder-black"
+                  className="neon-input"
                   rows={2}
                   placeholder="Detalles del trabajo"
                 />
               </div>
 
               <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-black">Ventas Declaradas</label>
+                <div className="flex justify-between items-center mb-3">
+                  <label className="block text-xs uppercase tracking-[0.2em] font-semibold text-[var(--text-muted)]">Ventas Declaradas</label>
                   <button
+                    type="button"
                     onClick={agregarMaterial}
-                    className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                    className="text-sm text-[var(--neon-cyan)] hover:text-white flex items-center gap-1 transition"
                   >
-                    <Plus size={16} />
-                    Agregar Venta
+                    <Plus size={14} />
+                    Agregar
                   </button>
                 </div>
 
-                <div className="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-600 mb-2 px-2">
+                <div className="grid grid-cols-12 gap-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-2 px-2">
                   <div className="col-span-7">Producto</div>
-                  <div className="col-span-3">Cantidad vendida</div>
+                  <div className="col-span-2">Cant.</div>
                   <div className="col-span-2">Venta total</div>
+                  <div className="col-span-1"></div>
                 </div>
                 {formData.materiales.map((material, index) => (
-                  <div key={index} className="grid grid-cols-12 gap-2 mb-2 p-2 bg-gray-50 rounded">
+                  <div key={index} className="grid grid-cols-12 gap-2 mb-2 p-2 bg-[var(--bg-base)]/60 rounded-lg border border-[var(--border-subtle)]">
                     <div className="col-span-7">
                       <select
                         value={material.producto}
                         onChange={(e) => actualizarMaterial(index, 'producto', e.target.value)}
-                        className="w-full px-2 py-1 border rounded text-sm text-black"
+                        className="neon-input text-sm py-1.5"
                       >
                         <option value="">Seleccionar producto</option>
                         {productos.map(p => (
@@ -544,8 +510,8 @@ function VentasContent() {
                             actualizarMaterial(index, 'cantidad', '');
                           }
                         }}
-                        className="w-full px-2 py-1 border rounded text-sm text-black placeholder-black"
-                        placeholder="Cant."
+                        className="neon-input text-sm py-1.5"
+                        placeholder="0"
                       />
                     </div>
                     <div className="col-span-2">
@@ -553,14 +519,14 @@ function VentasContent() {
                         type="text"
                         value={`Q${(material.precioVentaUnitario * material.cantidad).toFixed(2)}`}
                         disabled
-                        className="w-full px-2 py-1 border rounded text-sm bg-gray-100 text-black"
-                        placeholder="Venta total"
+                        className="neon-input text-sm py-1.5 opacity-70"
                       />
                     </div>
-                    <div className="col-span-1 flex items-center">
+                    <div className="col-span-1 flex items-center justify-center">
                       <button
+                        type="button"
                         onClick={() => eliminarMaterial(index)}
-                        className="text-red-600 hover:text-red-800"
+                        className="text-[var(--text-muted)] hover:text-[var(--neon-red)] transition"
                       >
                         <X size={16} />
                       </button>
@@ -571,51 +537,46 @@ function VentasContent() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-black mb-1">Costos Adicionales</label>
+                  <label className="block text-xs uppercase tracking-[0.2em] font-semibold text-[var(--text-muted)] mb-2">Costos Adicionales</label>
                   <input
                     type="number"
                     step="0.01"
                     value={formData.costosAdicionales}
                     onChange={(e) => actualizarCostosAdicionales(Number(e.target.value))}
-                    className="w-full px-3 py-2 border rounded-md text-black placeholder-black"
+                    className="neon-input"
                     placeholder="Mano de obra, electricidad, etc."
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-black mb-1">Nota de Costos</label>
+                  <label className="block text-xs uppercase tracking-[0.2em] font-semibold text-[var(--text-muted)] mb-2">Nota de Costos</label>
                   <input
                     type="text"
                     value={formData.notaCostos}
                     onChange={(e) => setFormData({ ...formData, notaCostos: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-md text-black placeholder-black"
+                    className="neon-input"
                     placeholder="Descripción costos adicionales"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-lg">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-xl border border-[var(--border-subtle)] bg-gradient-to-br from-[rgba(0,240,255,0.06)] to-[rgba(255,0,170,0.06)]">
                 <div>
-                  <p className="text-sm text-black mb-1">Costo de Producción</p>
-                  <p className="text-xl font-bold text-red-600">Q{formData.costoProduccion.toFixed(2)}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Costo de Producción</p>
+                  <p className="text-xl font-bold neon-text-red">Q{formData.costoProduccion.toFixed(2)}</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm text-black mb-1">Total ingresos de ventas</label>
-                  <input
-                    type="text"
-                    value={`Q${formData.precioVenta.toFixed(2)}`}
-                    disabled
-                    className="w-full px-3 py-2 border rounded-md bg-gray-100 text-black"
-                  />
+                  <p className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Total Ingresos</p>
+                  <p className="text-xl font-bold neon-text-cyan">Q{formData.precioVenta.toFixed(2)}</p>
                 </div>
 
                 <div>
-                  <p className="text-sm text-black mb-1">Ganancia</p>
-                  <p className="text-xl font-bold text-green-600">
+                  <p className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">Ganancia</p>
+                  <p className="text-xl font-bold neon-text-green">
                     Q{(formData.precioVenta - formData.costoProduccion).toFixed(2)}
                   </p>
-                  <p className="text-sm text-green-600">
+                  <p className="text-xs text-[var(--neon-green)] opacity-70">
                     ({formData.costoProduccion > 0
                       ? (((formData.precioVenta - formData.costoProduccion) / formData.costoProduccion) * 100).toFixed(1)
                       : '0'}%)
@@ -625,11 +586,11 @@ function VentasContent() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-black mb-1">Estado</label>
+                  <label className="block text-xs uppercase tracking-[0.2em] font-semibold text-[var(--text-muted)] mb-2">Estado</label>
                   <select
                     value={formData.estado}
                     onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-md text-black"
+                    className="neon-input"
                   >
                     <option value="Cotizado">Cotizado</option>
                     <option value="En Proceso">En Proceso</option>
@@ -639,26 +600,26 @@ function VentasContent() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-black mb-1">Fecha de Entrega</label>
+                  <label className="block text-xs uppercase tracking-[0.2em] font-semibold text-[var(--text-muted)] mb-2">Fecha de Entrega</label>
                   <input
                     type="date"
                     value={formData.fechaEntrega}
                     onChange={(e) => setFormData({ ...formData, fechaEntrega: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-md text-black"
+                    className="neon-input"
                   />
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-4">
+              <div className="flex gap-2 pt-2">
                 <button
                   onClick={guardarTrabajo}
-                  className="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+                  className="neon-btn-cyan flex-1 py-2.5"
                 >
                   Guardar
                 </button>
                 <button
                   onClick={() => setMostrarModal(false)}
-                  className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-md hover:bg-gray-300"
+                  className="flex-1 py-2.5 rounded-xl border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] transition"
                 >
                   Cancelar
                 </button>
@@ -667,6 +628,27 @@ function VentasContent() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function StatCard({ label, value, icon, accent }: { label: string; value: string; icon: React.ReactNode; accent: "cyan" | "magenta" | "green" | "red" }) {
+  const textCls = {
+    cyan: "neon-text-cyan",
+    magenta: "neon-text-magenta",
+    green: "neon-text-green",
+    red: "neon-text-red",
+  }[accent];
+  const cardCls = accent === "cyan" || accent === "green" ? "neon-card neon-card-cyan" : "neon-card neon-card-magenta";
+  return (
+    <div className={`${cardCls} p-5`}>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--text-muted)]">{label}</p>
+          <p className={`mt-2 text-2xl font-bold ${textCls}`}>{value}</p>
+        </div>
+        {icon}
+      </div>
     </div>
   );
 }

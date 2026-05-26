@@ -13,23 +13,23 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   return (
     <AuthProvider>
       {isLoginPage ? (
-        <main className="min-h-screen bg-gray-50">
+        <main className="min-h-screen">
           {children}
         </main>
       ) : (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen">
         <div className="md:flex md:items-stretch h-full">
-          <aside className="hidden md:flex md:flex-col md:w-56 min-h-screen bg-white border-r">
+          <aside className="hidden md:flex md:flex-col md:w-60 min-h-screen border-r border-[var(--border-subtle)]">
             <Sidebar />
           </aside>
 
           {sidebarOpen && (
             <>
-              <div className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={() => setSidebarOpen(false)} />
-              <aside className="fixed inset-y-0 left-0 z-50 w-72 bg-slate-950 text-slate-100 border-r border-slate-900 py-4 px-3 md:hidden h-screen overflow-hidden shadow-2xl">
-                <div className="flex justify-end mb-4 px-1">
-                  <button onClick={() => setSidebarOpen(false)} className="rounded-full bg-white/10 p-2 text-slate-100 hover:bg-white/20">
-                    <X size={22} />
+              <div className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm md:hidden" onClick={() => setSidebarOpen(false)} />
+              <aside className="fixed inset-y-0 left-0 z-50 w-72 md:hidden h-screen overflow-hidden shadow-[0_0_40px_rgba(0,240,255,0.2)]">
+                <div className="absolute top-3 right-3 z-10">
+                  <button onClick={() => setSidebarOpen(false)} className="rounded-full bg-white/5 p-2 text-[var(--text-primary)] hover:bg-white/10 border border-[var(--border-subtle)]">
+                    <X size={20} />
                   </button>
                 </div>
                 <Sidebar />
@@ -37,11 +37,11 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             </>
           )}
 
-          <main className="flex-1 min-h-screen bg-gray-50">
+          <main className="flex-1 min-h-screen">
             <div className="md:hidden p-4">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                className="inline-flex items-center gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 py-2 text-sm font-semibold text-[var(--text-primary)] hover:border-[var(--neon-cyan)] transition"
               >
                 <Menu size={18} />
                 Menú

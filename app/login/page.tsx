@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
+import NeonIllustration from '@/components/NeonIllustration';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -32,71 +33,86 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <Image src="/logo.png" alt="Logo ImpresoGT" width={80} height={80} className="mx-auto mb-4 rounded-full shadow" />
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">ImpresoGT</h1>
-          <h2 className="text-xl text-gray-600">Sistema de Inventario</h2>
+    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
+      <div className="absolute inset-0 cyber-grid opacity-30 pointer-events-none" />
+      <div className="absolute -top-20 -left-20 w-96 h-96 rounded-full bg-[var(--neon-cyan)] opacity-10 blur-[120px]" />
+      <div className="absolute -bottom-20 -right-20 w-96 h-96 rounded-full bg-[var(--neon-magenta)] opacity-10 blur-[120px]" />
+
+      <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 max-w-5xl w-full relative z-10 items-center">
+        <div className="hidden lg:block animate-float">
+          <NeonIllustration variant="cubes" className="w-full max-w-md mx-auto" />
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6 bg-white p-8 rounded-lg shadow-md">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
-              {error}
+        <div className="max-w-md w-full mx-auto space-y-6">
+          <div className="text-center">
+            <div className="inline-grid place-items-center h-20 w-20 rounded-2xl bg-[var(--bg-card)] border border-[rgba(0,240,255,0.4)] shadow-[0_0_30px_rgba(0,240,255,0.3)] mb-4">
+              <Image src="/logo.png" alt="Logo ImpresoGT" width={50} height={50} className="rounded-xl" />
             </div>
-          )}
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder:text-gray-400"
-              placeholder="tu@email.com"
-            />
+            <h1 className="text-4xl font-bold neon-text-cyan tracking-wide">ImpresoGT</h1>
+            <p className="text-sm text-[var(--text-muted)] uppercase tracking-[0.3em] mt-2">Sistema de Inventario</p>
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Contraseña
-            </label>
-            <div className="relative">
-              <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder:text-gray-400"
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-2 flex items-center px-2 text-gray-500 hover:text-gray-700"
-                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={cargando}
-            className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-5 neon-card neon-card-cyan p-7"
           >
-            <LogIn size={20} />
-            {cargando ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-          </button>
-        </form>
+            {error && (
+              <div className="rounded-lg border border-[rgba(255,64,96,0.4)] bg-[rgba(255,64,96,0.08)] px-4 py-3 text-sm neon-text-red">
+                {error}
+              </div>
+            )}
+
+            <div>
+              <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] mb-2">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="neon-input"
+                placeholder="tu@email.com"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)] mb-2">
+                Contraseña
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="neon-input pr-10"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-2 flex items-center px-2 text-[var(--text-muted)] hover:text-[var(--neon-cyan)] transition"
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={cargando}
+              className="neon-btn-cyan w-full flex items-center justify-center gap-2 py-2.5"
+            >
+              <LogIn size={18} />
+              {cargando ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

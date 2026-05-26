@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Plus, Edit, Trash2, X } from "lucide-react";
+import { Plus, Edit, Trash2, X, Box } from "lucide-react";
 import api from "@/lib/api";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -120,135 +120,151 @@ function ProductosContent() {
   };
 
   return (
-    <div className="p-4">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Productos</h1>
-        <button
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          onClick={handleOpenModal}
-        >
-          <Plus size={18} /> Nuevo producto
-        </button>
-      </div>
-
-      {/* Popup Modal animado */}
-      {showModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm transition-opacity animate-fadein"
-          onClick={handleCloseModal}
-        >
-          <div
-            className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative animate-popup"
-            onClick={e => e.stopPropagation()}
-          >
-            <button
-              className="absolute top-2 right-2 p-1 text-gray-500 hover:text-gray-900"
-              onClick={handleCloseModal}
-              aria-label="Cerrar"
-            >
-              <X size={20} />
-            </button>
-            <h2 className="text-lg font-bold mb-4 text-gray-900">{productoSeleccionado ? 'Editar producto' : 'Nuevo producto'}</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">Nombre</label>
-                <input
-                  type="text"
-                  name="nombre"
-                  value={form.nombre}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2 text-black"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">Costo Produccion</label>
-                <input
-                  type="number"
-                  name="precioCompra"
-                  min={0}
-                  step={0.01}
-                  value={form.precioCompra}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2 text-black"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">Precio Venta</label>
-                <input
-                  type="number"
-                  name="precioVenta"
-                  min={0}
-                  step={0.01}
-                  value={form.precioVenta}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2 text-black"
-                  required
-                />
-              </div>
-              {formError && <div className="text-red-600 text-sm">{formError}</div>}
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors font-bold"
-                disabled={saving}
-              >
-                {saving ? "Guardando..." : "Guardar"}
-              </button>
-            </form>
+    <div className="min-h-screen">
+      <header className="border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/60 backdrop-blur-sm relative overflow-hidden">
+        <div className="absolute inset-0 cyber-grid opacity-30 pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex items-center justify-between relative">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-[var(--text-muted)]">ImpresoGT // Catálogo</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">Productos</h1>
           </div>
+          <button
+            className="neon-btn-cyan flex items-center gap-2 px-4 py-2 text-sm"
+            onClick={handleOpenModal}
+          >
+            <Plus size={16} /> Nuevo producto
+          </button>
         </div>
-      )}
+      </header>
 
-      {loading ? (
-        <div className="text-gray-700">Cargando productos...</div>
-      ) : error ? (
-        <div className="text-red-600">{error}</div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="px-4 py-2 text-left text-gray-900 font-bold">Nombre</th>
-                <th className="px-4 py-2 text-left text-gray-900 font-bold">Costo Produccion</th>
-                <th className="px-4 py-2 text-left text-gray-900 font-bold">Precio Venta</th>
-                <th className="px-4 py-2 text-left text-gray-900 font-bold">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {productos.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-4 py-4 text-center text-gray-700">No hay productos registrados.</td>
-                </tr>
-              ) : (
-                productos.map(producto => (
-                  <tr key={producto._id} className="border-t">
-                    <td className="px-4 py-2 text-gray-900">{producto.nombre}</td>
-                    <td className="px-4 py-2 text-gray-900">Q{producto.precioCompra.toFixed(2)}</td>
-                    <td className="px-4 py-2 text-gray-900">Q{producto.precioVenta.toFixed(2)}</td>
-                    <td className="px-4 py-2 flex gap-2">
-                        <button
-                        className="p-2 rounded hover:bg-blue-50"
-                        title="Editar"
-                        onClick={() => handleOpenEdit(producto)}
-                      >
-                        <Edit size={16} className="text-blue-600" />
-                      </button>
-                      <button
-                        className="p-2 rounded hover:bg-red-50"
-                        title="Eliminar"
-                        onClick={() => handleDeleteProducto(producto._id)}
-                      >
-                        <Trash2 size={16} className="text-red-600" />
-                      </button>
-                    </td>
+      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        {showModal && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fadein"
+            onClick={handleCloseModal}
+          >
+            <div
+              className="neon-card neon-card-cyan w-full max-w-md p-6 relative animate-popup mx-4"
+              onClick={e => e.stopPropagation()}
+            >
+              <button
+                className="absolute top-3 right-3 text-[var(--text-muted)] hover:text-[var(--neon-red)] transition"
+                onClick={handleCloseModal}
+                aria-label="Cerrar"
+              >
+                <X size={20} />
+              </button>
+              <h2 className="text-lg font-bold neon-text-cyan mb-4">
+                {productoSeleccionado ? 'Editar producto' : 'Nuevo producto'}
+              </h2>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs uppercase tracking-[0.2em] font-semibold text-[var(--text-muted)] mb-2">Nombre</label>
+                  <input
+                    type="text"
+                    name="nombre"
+                    value={form.nombre}
+                    onChange={handleChange}
+                    className="neon-input"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-[0.2em] font-semibold text-[var(--text-muted)] mb-2">Costo Producción</label>
+                  <input
+                    type="number"
+                    name="precioCompra"
+                    min={0}
+                    step={0.01}
+                    value={form.precioCompra}
+                    onChange={handleChange}
+                    className="neon-input"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-[0.2em] font-semibold text-[var(--text-muted)] mb-2">Precio Venta</label>
+                  <input
+                    type="number"
+                    name="precioVenta"
+                    min={0}
+                    step={0.01}
+                    value={form.precioVenta}
+                    onChange={handleChange}
+                    className="neon-input"
+                    required
+                  />
+                </div>
+                {formError && <div className="text-sm neon-text-red">{formError}</div>}
+                <button
+                  type="submit"
+                  className="neon-btn-cyan w-full py-2.5"
+                  disabled={saving}
+                >
+                  {saving ? "Guardando..." : "Guardar"}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="neon-spinner h-14 w-14"></div>
+          </div>
+        ) : error ? (
+          <div className="neon-card neon-card-magenta p-5 neon-text-red">{error}</div>
+        ) : (
+          <div className="neon-card neon-card-cyan overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="bg-[var(--bg-surface)]/70 border-b border-[var(--border-subtle)]">
+                    <th className="px-4 py-3 text-left text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Nombre</th>
+                    <th className="px-4 py-3 text-left text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Costo Producción</th>
+                    <th className="px-4 py-3 text-left text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Precio Venta</th>
+                    <th className="px-4 py-3 text-left text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">Acciones</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+                </thead>
+                <tbody>
+                  {productos.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-4 py-12 text-center text-[var(--text-muted)]">
+                        <Box size={36} className="mx-auto mb-3 text-[var(--neon-cyan)] opacity-50" />
+                        No hay productos registrados.
+                      </td>
+                    </tr>
+                  ) : (
+                    productos.map(producto => (
+                      <tr key={producto._id} className="border-t border-[var(--border-subtle)] hover:bg-[var(--bg-surface)]/40 transition">
+                        <td className="px-4 py-3 text-[var(--text-primary)] font-medium">{producto.nombre}</td>
+                        <td className="px-4 py-3 neon-text-red">Q{producto.precioCompra.toFixed(2)}</td>
+                        <td className="px-4 py-3 neon-text-cyan">Q{producto.precioVenta.toFixed(2)}</td>
+                        <td className="px-4 py-3 flex gap-1">
+                          <button
+                            className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--neon-cyan)] hover:bg-[var(--bg-surface)] transition"
+                            title="Editar"
+                            onClick={() => handleOpenEdit(producto)}
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--neon-red)] hover:bg-[var(--bg-surface)] transition"
+                            title="Eliminar"
+                            onClick={() => handleDeleteProducto(producto._id)}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

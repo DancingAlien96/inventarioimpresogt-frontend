@@ -137,22 +137,38 @@ function DashboardContent() {
   if (cargando) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="neon-spinner h-14 w-14"></div>
       </div>
     );
   }
 
+  const gridColor = 'rgba(255,255,255,0.05)';
+  const tickColor = '#a0a0c8';
+
+  const chartScaleY = {
+    beginAtZero: true,
+    grid: { color: gridColor },
+    ticks: { color: tickColor, callback: (value: string | number) => `Q${value}` },
+  };
+  const chartScaleX = {
+    grid: { color: gridColor },
+    ticks: { color: tickColor },
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white shadow-sm border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen">
+      <header className="border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/60 backdrop-blur-sm relative overflow-hidden">
+        <div className="absolute inset-0 cyber-grid opacity-30 pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 relative">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.24em] text-slate-500">ImpresoGT</p>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Bienvenido, {usuario?.nombre}</h1>
+              <p className="text-xs uppercase tracking-[0.3em] text-[var(--text-muted)]">ImpresoGT // Panel</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
+                Bienvenido, <span className="neon-text-cyan">{usuario?.nombre}</span>
+              </h1>
             </div>
-            <div className="rounded-3xl bg-slate-100 px-4 py-3 text-slate-700 text-sm sm:text-base font-medium">
-              Dashboard simplificado
+            <div className="rounded-xl border border-[rgba(0,240,255,0.3)] bg-[var(--bg-card)] px-4 py-2 text-[var(--text-secondary)] text-sm font-medium shadow-[0_0_16px_rgba(0,240,255,0.1)]">
+              Resumen general
             </div>
           </div>
         </div>
@@ -160,145 +176,141 @@ function DashboardContent() {
 
       <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <div className="bg-white p-6 rounded-3xl shadow">
-            <p className="text-sm text-gray-500">Productos registrados</p>
-            <p className="text-3xl font-bold text-slate-900">{productos.length}</p>
-          </div>
-          <div className="bg-white p-6 rounded-3xl shadow">
-            <p className="text-sm text-gray-500">Valor del inventario</p>
-            <p className="text-3xl font-bold text-slate-900">Q{valorTotal.toFixed(2)}</p>
-          </div>
-          <div className="bg-white p-6 rounded-3xl shadow">
-            <p className="text-sm text-gray-500">Capital disponible</p>
-            <p className={`text-3xl font-bold ${capitalDisponible < 0 ? 'text-red-600' : 'text-slate-900'}`}>Q{capitalDisponible.toFixed(2)}</p>
-          </div>
-          <div className="bg-white p-6 rounded-3xl shadow">
-            <p className="text-sm text-gray-500">Margen promedio</p>
-            <p className="text-3xl font-bold text-slate-900">{resumenTrabajos.margenPromedio.toFixed(1)}%</p>
-          </div>
+          <StatCard label="Productos registrados" value={String(productos.length)} accent="cyan" />
+          <StatCard label="Valor del inventario" value={`Q${valorTotal.toFixed(2)}`} accent="cyan" />
+          <StatCard
+            label="Capital disponible"
+            value={`Q${capitalDisponible.toFixed(2)}`}
+            accent={capitalDisponible < 0 ? "red" : "magenta"}
+          />
+          <StatCard label="Margen promedio" value={`${resumenTrabajos.margenPromedio.toFixed(1)}%`} accent="cyan" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-3xl shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-sm text-gray-500">Tendencia mensual</p>
-                <h2 className="text-xl font-semibold text-slate-900">Ventas por mes</h2>
-              </div>
-              <TrendingUp className="text-green-600" size={32} />
-            </div>
+          <ChartCard title="Ventas por mes" subtitle="Tendencia mensual" icon={<TrendingUp className="text-[var(--neon-cyan)]" size={28} />}>
             <Bar
               data={{
                 labels: meses,
-                datasets: [
-                  {
-                    label: 'Ventas',
-                    data: ventasPorMes,
-                    backgroundColor: 'rgba(59,130,246,0.75)',
-                  },
-                ],
+                datasets: [{
+                  label: 'Ventas',
+                  data: ventasPorMes,
+                  backgroundColor: 'rgba(0,240,255,0.6)',
+                  borderColor: '#00f0ff',
+                  borderWidth: 1.5,
+                  borderRadius: 6,
+                }],
               }}
               options={{
                 responsive: true,
                 plugins: { legend: { display: false } },
-                scales: {
-                  y: { beginAtZero: true, ticks: { callback: (value: string | number) => `Q${value}` } },
-                },
+                scales: { y: chartScaleY, x: chartScaleX },
               }}
               height={260}
             />
-          </div>
+          </ChartCard>
 
-          <div className="bg-white p-6 rounded-3xl shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-sm text-gray-500">Distribución de ventas</p>
-                <h2 className="text-xl font-semibold text-slate-900">Ventas por producto</h2>
-              </div>
-              <DollarSign className="text-indigo-600" size={32} />
-            </div>
+          <ChartCard title="Ventas por producto" subtitle="Distribución" icon={<DollarSign className="text-[var(--neon-magenta)]" size={28} />}>
             <Pie
               data={{
                 labels: productosVenta,
-                datasets: [
-                  {
-                    data: montosVenta,
-                    backgroundColor: [
-                      'rgba(59,130,246,0.75)',
-                      'rgba(16,185,129,0.75)',
-                      'rgba(239,68,68,0.75)',
-                      'rgba(245,158,11,0.75)',
-                      'rgba(168,85,247,0.75)',
-                    ],
-                  },
-                ],
+                datasets: [{
+                  data: montosVenta,
+                  backgroundColor: ['#00f0ff', '#ff00aa', '#39ff88', '#ffd60a', '#8b5cf6', '#ff4060', '#0080ff', '#aa0080'],
+                  borderColor: '#0a0a1a',
+                  borderWidth: 2,
+                }],
               }}
               options={{
                 responsive: true,
-                plugins: { legend: { position: 'bottom' as const } },
+                plugins: { legend: { position: 'bottom' as const, labels: { color: tickColor } } },
               }}
               height={260}
             />
-          </div>
+          </ChartCard>
 
-          <div className="bg-white p-6 rounded-3xl shadow">
-            <div className="mb-4">
-              <p className="text-sm text-gray-500">Ganancia por unidad</p>
-              <h2 className="text-xl font-semibold text-slate-900">Margen por producto</h2>
-            </div>
+          <ChartCard title="Margen por producto" subtitle="Ganancia por unidad" icon={<TrendingUp className="text-[var(--neon-green)]" size={28} />}>
             <Bar
               data={{
                 labels: productoMargenLabels,
-                datasets: [
-                  {
-                    label: 'Margen',
-                    data: productoMargenValores,
-                    backgroundColor: 'rgba(34,197,94,0.75)',
-                  },
-                ],
+                datasets: [{
+                  label: 'Margen',
+                  data: productoMargenValores,
+                  backgroundColor: 'rgba(57,255,136,0.55)',
+                  borderColor: '#39ff88',
+                  borderWidth: 1.5,
+                  borderRadius: 6,
+                }],
+              }}
+              options={{
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: chartScaleY, x: chartScaleX },
+              }}
+              height={260}
+            />
+          </ChartCard>
+
+          <ChartCard title="Productos en inventario" subtitle="Stock actual" icon={<Package className="text-[var(--neon-cyan)]" size={28} />}>
+            <Bar
+              data={{
+                labels: productoStockLabels,
+                datasets: [{
+                  label: 'Cantidad',
+                  data: productoStockValores,
+                  backgroundColor: 'rgba(255,0,170,0.55)',
+                  borderColor: '#ff00aa',
+                  borderWidth: 1.5,
+                  borderRadius: 6,
+                }],
               }}
               options={{
                 responsive: true,
                 plugins: { legend: { display: false } },
                 scales: {
-                  y: { beginAtZero: true, ticks: { callback: (value: string | number) => `Q${value}` } },
+                  y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: tickColor } },
+                  x: chartScaleX,
                 },
               }}
               height={260}
             />
-          </div>
-
-          <div className="bg-white p-6 rounded-3xl shadow">
-            <div className="mb-4">
-              <p className="text-sm text-gray-500">Stock actual</p>
-              <h2 className="text-xl font-semibold text-slate-900">Productos en inventario</h2>
-            </div>
-            <Bar
-              data={{
-                labels: productoStockLabels,
-                datasets: [
-                  {
-                    label: 'Cantidad',
-                    data: productoStockValores,
-                    backgroundColor: 'rgba(59,130,246,0.75)',
-                  },
-                ],
-              }}
-              options={{
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true } },
-              }}
-              height={260}
-            />
-          </div>
+          </ChartCard>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl shadow">
-          <p className="text-sm text-gray-500">Productos con bajo stock</p>
-          <p className="mt-2 text-2xl font-semibold text-slate-900">{lowStockCount}</p>
+        <div className="neon-card neon-card-magenta p-6 flex items-center justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-[var(--text-muted)]">Alertas</p>
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">Productos con bajo stock</p>
+            <p className="mt-2 text-3xl font-bold neon-text-magenta">{lowStockCount}</p>
+          </div>
+          <Package className="text-[var(--neon-magenta)] animate-float" size={56} />
         </div>
       </main>
+    </div>
+  );
+}
+
+function StatCard({ label, value, accent }: { label: string; value: string; accent: "cyan" | "magenta" | "red" }) {
+  const textCls = accent === "cyan" ? "neon-text-cyan" : accent === "magenta" ? "neon-text-magenta" : "neon-text-red";
+  const cardCls = accent === "magenta" || accent === "red" ? "neon-card neon-card-magenta" : "neon-card neon-card-cyan";
+  return (
+    <div className={`${cardCls} p-5`}>
+      <p className="text-xs uppercase tracking-[0.25em] text-[var(--text-muted)]">{label}</p>
+      <p className={`mt-2 text-3xl font-bold ${textCls}`}>{value}</p>
+    </div>
+  );
+}
+
+function ChartCard({ title, subtitle, icon, children }: { title: string; subtitle: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="neon-card neon-card-cyan p-5">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <p className="text-xs uppercase tracking-[0.3em] text-[var(--text-muted)]">{subtitle}</p>
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h2>
+        </div>
+        {icon}
+      </div>
+      {children}
     </div>
   );
 }
